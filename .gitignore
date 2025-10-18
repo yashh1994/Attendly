@@ -1,2 +1,5 @@
 # Ignore virtual environment in Backend
 /Backend/venv/
+
+
+/Backend/.env
