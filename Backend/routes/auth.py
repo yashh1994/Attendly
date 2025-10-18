@@ -18,32 +18,49 @@ def validate_password(password):
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
     """User registration endpoint"""
+    print("🔥 SIGNUP ENDPOINT HIT!")
+    print(f"🔥 Request method: {request.method}")
+    print(f"🔥 Request URL: {request.url}")
+    print(f"🔥 Request headers: {dict(request.headers)}")
+    
     try:
         data = request.get_json()
+        print(f"🔥 Request data: {data}")
         
         # Validate required fields
         required_fields = ['email', 'password', 'first_name', 'last_name', 'role']
         for field in required_fields:
             if field not in data or not data[field]:
+                print(f"🔥 Missing field: {field}")
                 return jsonify({'error': f'{field} is required'}), 400
         
         # Validate email format
+        print(f"🔥 Validating email: {data['email']}")
         if not validate_email(data['email']):
+            print(f"🔥 Invalid email format")
             return jsonify({'error': 'Invalid email format'}), 400
         
         # Validate password strength
+        print(f"🔥 Validating password length: {len(data['password'])}")
         if not validate_password(data['password']):
+            print(f"🔥 Password too short")
             return jsonify({'error': 'Password must be at least 8 characters long'}), 400
         
         # Validate role
+        print(f"🔥 Validating role: {data['role']}")
         if data['role'] not in ['teacher', 'student']:
+            print(f"🔥 Invalid role")
             return jsonify({'error': 'Role must be either teacher or student'}), 400
         
         # Check if user already exists
-        if User.query.filter_by(email=data['email']).first():
+        print(f"🔥 Checking if user exists for email: {data['email']}")
+        existing_user = User.query.filter_by(email=data['email']).first()
+        if existing_user:
+            print(f"🔥 User already exists")
             return jsonify({'error': 'User with this email already exists'}), 409
         
         # Create new user
+        print(f"🔥 Creating new user...")
         user = User(
             email=data['email'].lower(),
             first_name=data['first_name'],
@@ -52,12 +69,16 @@ def signup():
         )
         user.set_password(data['password'])
         
+        print(f"🔥 Adding user to database...")
         db.session.add(user)
         db.session.commit()
+        print(f"🔥 User created successfully with ID: {user.id}")
         
         # Create access token
+        print(f"🔥 Creating access token...")
         access_token = create_access_token(identity=user.id)
         
+        print(f"🔥 Returning success response")
         return jsonify({
             'message': 'User created successfully',
             'user': user.to_dict(),
@@ -65,6 +86,8 @@ def signup():
         }), 201
         
     except Exception as e:
+        print(f"🔥 ERROR in signup: {str(e)}")
+        print(f"🔥 ERROR type: {type(e)}")
         db.session.rollback()
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
@@ -186,6 +209,37 @@ def change_password():
         
         return jsonify({
             'message': 'Password changed successfully'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+@auth_bp.route('/update-role', methods=['PUT'])
+@jwt_required()
+def update_role():
+    """Update user role"""
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        data = request.get_json()
+        
+        # Validate role
+        if not data.get('role') or data['role'] not in ['teacher', 'student']:
+            return jsonify({'error': 'Role must be either teacher or student'}), 400
+        
+        # Update role
+        user.role = data['role']
+        user._update_full_name()  # Update computed field
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Role updated successfully',
+            'user': user.to_dict()
         }), 200
         
     except Exception as e:
