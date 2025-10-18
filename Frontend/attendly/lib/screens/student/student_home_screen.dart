@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/api_service.dart';
 import '../../widgets/custom_widgets.dart';
 import '../../utils/app_theme.dart';
 import '../../models/class.dart';
@@ -16,8 +17,10 @@ class StudentHomeScreen extends StatefulWidget {
 class _StudentHomeScreenState extends State<StudentHomeScreen>
     with TickerProviderStateMixin {
   final _joinCodeController = TextEditingController();
+  final ApiService _apiService = ApiService();
   List<ClassModel> _enrolledClasses = [];
   bool _isLoading = false;
+  String? _error;
 
   @override
   void initState() {
@@ -34,37 +37,42 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
   Future<void> _loadEnrolledClasses() async {
     setState(() {
       _isLoading = true;
+      _error = null;
     });
 
-    // TODO: Load enrolled classes from API
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      // Get token from auth provider and set in API service
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.token != null) {
+        _apiService.setToken(authProvider.token);
+      }
 
-    setState(() {
-      _isLoading = false;
-      // Mock data for now
-      _enrolledClasses = [
-        ClassModel(
-          id: 1,
-          name: 'Computer Science 101',
-          description: 'Introduction to Programming',
-          joinCode: 'CS101ABC',
-          teacherId: 1,
-          teacherName: 'Dr. Smith',
-          totalStudents: 25,
-          createdAt: DateTime.now().subtract(const Duration(days: 30)),
-        ),
-        ClassModel(
-          id: 2,
-          name: 'Data Structures',
-          description: 'Advanced Data Structures and Algorithms',
-          joinCode: 'DS202XYZ',
-          teacherId: 2,
-          teacherName: 'Prof. Johnson',
-          totalStudents: 30,
-          createdAt: DateTime.now().subtract(const Duration(days: 15)),
-        ),
-      ];
-    });
+      print('🔥 FLUTTER: Loading enrolled classes from API...');
+      final classes = await _apiService.getMyClasses();
+
+      setState(() {
+        _enrolledClasses = classes;
+        _isLoading = false;
+      });
+
+      print('🔥 FLUTTER: Loaded ${classes.length} enrolled classes');
+    } catch (e) {
+      print('🔥 FLUTTER: Error loading enrolled classes: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+        _enrolledClasses = []; // Clear any existing data
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load classes: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _joinClass() async {
@@ -79,18 +87,47 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
       return;
     }
 
-    // TODO: Implement join class API call
-    Navigator.pop(context);
-    _joinCodeController.clear();
+    setState(() {
+      _isLoading = true;
+    });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Successfully joined class!'),
-        backgroundColor: AppTheme.successColor,
-      ),
-    );
+    try {
+      // Get token from auth provider and set in API service
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.token != null) {
+        _apiService.setToken(authProvider.token);
+      }
 
-    _loadEnrolledClasses();
+      print('🔥 FLUTTER: Joining class with code: $joinCode');
+      await _apiService.joinClass(joinCode);
+
+      Navigator.pop(context);
+      _joinCodeController.clear();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Successfully joined class!'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+
+      // Reload the classes list
+      _loadEnrolledClasses();
+    } catch (e) {
+      print('🔥 FLUTTER: Error joining class: $e');
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to join class: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 
   void _showJoinClassDialog() {

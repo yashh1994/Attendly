@@ -14,7 +14,7 @@ face_data_bp = Blueprint('face_data', __name__)
 
 def get_current_user():
     """Helper function to get current authenticated user"""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     return User.query.get(user_id)
 
 def get_vector_db():
