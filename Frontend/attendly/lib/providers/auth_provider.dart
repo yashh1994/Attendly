@@ -115,8 +115,12 @@ class AuthProvider extends ChangeNotifier {
       _token = response['access_token'];
       _user = User.fromJson(response['user']);
 
+      // Set token in API service immediately
+      _apiService.setToken(_token);
+
       print('🔥 FLUTTER: User created: ${_user?.toJson()}');
       print('🔥 FLUTTER: Token: $_token');
+      print('🔥 FLUTTER: Token set in ApiService');
 
       await _saveAuthData();
       _setLoading(false);
@@ -134,16 +138,35 @@ class AuthProvider extends ChangeNotifier {
   // Set user role after registration
   Future<bool> setUserRole(String role) async {
     try {
+      print('🔥 FLUTTER: AuthProvider.setUserRole called with role: $role');
+      print('🔥 FLUTTER: Current token: $_token');
+      print('🔥 FLUTTER: Current user: ${_user?.toJson()}');
+
       _setLoading(true);
       clearError();
 
       if (_user == null) {
+        print('🔥 FLUTTER: ERROR - User data not found');
         _setError('User data not found');
         _setLoading(false);
         return false;
       }
 
+      if (_token == null) {
+        print('🔥 FLUTTER: ERROR - No token available');
+        _setError('No authentication token');
+        _setLoading(false);
+        return false;
+      }
+
+      // Ensure token is set in API service
+      _apiService.setToken(_token);
+      print('🔥 FLUTTER: Token set in ApiService before role update');
+
+      print('🔥 FLUTTER: Calling ApiService.updateUserRole...');
       final response = await _apiService.updateUserRole(role);
+      print('🔥 FLUTTER: Role update response: $response');
+
       _user = User.fromJson(response['user']);
 
       await _saveAuthData();
@@ -151,6 +174,8 @@ class AuthProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
+      print('🔥 FLUTTER: ERROR in setUserRole: $e');
+      print('🔥 FLUTTER: ERROR type: ${e.runtimeType}');
       _setError(e.toString());
       _setLoading(false);
       return false;

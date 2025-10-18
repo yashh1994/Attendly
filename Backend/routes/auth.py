@@ -76,7 +76,8 @@ def signup():
         
         # Create access token
         print(f"🔥 Creating access token...")
-        access_token = create_access_token(identity=user.id)
+        print(f"🔥 User ID: {user.id}, Type: {type(user.id)}")
+        access_token = create_access_token(identity=str(user.id))
         
         print(f"🔥 Returning success response")
         return jsonify({
@@ -111,7 +112,7 @@ def login():
             return jsonify({'error': 'Account is deactivated'}), 401
         
         # Create access token
-        access_token = create_access_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
         
         return jsonify({
             'message': 'Login successful',
@@ -127,7 +128,7 @@ def login():
 def get_profile():
     """Get current user profile"""
     try:
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
@@ -145,7 +146,7 @@ def get_profile():
 def update_profile():
     """Update current user profile"""
     try:
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
@@ -183,7 +184,7 @@ def update_profile():
 def change_password():
     """Change user password"""
     try:
-        user_id = get_jwt_identity()
+        user_id = int(get_jwt_identity())
         user = User.query.get(user_id)
         
         if not user:
@@ -220,22 +221,43 @@ def change_password():
 def update_role():
     """Update user role"""
     try:
-        user_id = get_jwt_identity()
+        print(f"🔥 UPDATE ROLE: Starting update role request")
+        print(f"🔥 UPDATE ROLE: Request headers: {dict(request.headers)}")
+        print(f"🔥 UPDATE ROLE: Request method: {request.method}")
+        print(f"🔥 UPDATE ROLE: Request URL: {request.url}")
+        
+        user_id_str = get_jwt_identity()
+        print(f"🔥 UPDATE ROLE: User ID from JWT: {user_id_str}, Type: {type(user_id_str)}")
+        
+        user_id = int(user_id_str)
+        print(f"🔥 UPDATE ROLE: User ID converted to int: {user_id}")
+        
         user = User.query.get(user_id)
+        print(f"🔥 UPDATE ROLE: User found: {user.to_dict() if user else 'None'}")
         
         if not user:
+            print(f"🔥 UPDATE ROLE: ERROR - User not found")
             return jsonify({'error': 'User not found'}), 404
         
         data = request.get_json()
+        print(f"🔥 UPDATE ROLE: Request data: {data}")
         
         # Validate role
         if not data.get('role') or data['role'] not in ['teacher', 'student']:
+            print(f"🔥 UPDATE ROLE: ERROR - Invalid role: {data.get('role') if data else 'No data'}")
             return jsonify({'error': 'Role must be either teacher or student'}), 400
+        
+        print(f"🔥 UPDATE ROLE: Updating user role from {user.role} to {data['role']}")
         
         # Update role
         user.role = data['role']
         user._update_full_name()  # Update computed field
+        
+        print(f"🔥 UPDATE ROLE: Committing changes to database...")
         db.session.commit()
+        
+        print(f"🔥 UPDATE ROLE: Role updated successfully")
+        print(f"🔥 UPDATE ROLE: Updated user: {user.to_dict()}")
         
         return jsonify({
             'message': 'Role updated successfully',
@@ -243,5 +265,39 @@ def update_role():
         }), 200
         
     except Exception as e:
+        print(f"🔥 UPDATE ROLE: ERROR - Exception occurred: {str(e)}")
+        print(f"🔥 UPDATE ROLE: ERROR - Exception type: {type(e)}")
+        import traceback
+        print(f"🔥 UPDATE ROLE: ERROR - Traceback: {traceback.format_exc()}")
         db.session.rollback()
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+@auth_bp.route('/verify-token', methods=['GET'])
+@jwt_required()
+def verify_token():
+    """Verify if token is valid"""
+    try:
+        print(f"🔥 VERIFY TOKEN: Starting token verification")
+        print(f"🔥 VERIFY TOKEN: Request headers: {dict(request.headers)}")
+        
+        user_id_str = get_jwt_identity()
+        print(f"🔥 VERIFY TOKEN: User ID from JWT: {user_id_str}, Type: {type(user_id_str)}")
+        
+        user_id = int(user_id_str)
+        user = User.query.get(user_id)
+        print(f"🔥 VERIFY TOKEN: User found: {user.to_dict() if user else 'None'}")
+        
+        if not user:
+            print(f"🔥 VERIFY TOKEN: ERROR - User not found")
+            return jsonify({'error': 'User not found'}), 404
+        
+        print(f"🔥 VERIFY TOKEN: Token is valid")
+        return jsonify({
+            'message': 'Token is valid',
+            'user': user.to_dict()
+        }), 200
+        
+    except Exception as e:
+        print(f"🔥 VERIFY TOKEN: ERROR - Exception occurred: {str(e)}")
+        print(f"🔥 VERIFY TOKEN: ERROR - Exception type: {type(e)}")
+        return jsonify({'error': 'Invalid token', 'details': str(e)}), 401

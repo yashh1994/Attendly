@@ -10,7 +10,7 @@ import sys
 # Load environment variables
 load_dotenv()
 
-# Initialize extensions
+# Initialize extensions GLOBALLY - SINGLE INSTANCES
 db = SQLAlchemy()
 jwt = JWTManager()
 migrate = Migrate()
@@ -50,7 +50,14 @@ def create_app():
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
-    CORS(app)
+    
+    # Configure CORS with debug logging
+    CORS(app, 
+         origins=['*'],  # Allow all origins for development
+         allow_headers=['Content-Type', 'Authorization', 'X-Requested-With'],
+         expose_headers=['Authorization'],
+         methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+    print("🌐 CORS configured for all origins with Authorization header support")
     
     # Initialize vector database
     try:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/api_service.dart';
 import '../../widgets/custom_widgets.dart';
 import '../../utils/app_theme.dart';
 import '../../models/class.dart';
@@ -16,8 +17,10 @@ class TeacherHomeScreen extends StatefulWidget {
 class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   final _classNameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final ApiService _apiService = ApiService();
   List<ClassModel> _createdClasses = [];
   bool _isLoading = false;
+  String? _error;
 
   @override
   void initState() {
@@ -35,41 +38,47 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   Future<void> _loadCreatedClasses() async {
     setState(() {
       _isLoading = true;
+      _error = null;
     });
 
-    // TODO: Load created classes from API
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      // Get token from auth provider and set in API service
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.token != null) {
+        _apiService.setToken(authProvider.token);
+      }
 
-    setState(() {
-      _isLoading = false;
-      // Mock data for now
-      _createdClasses = [
-        ClassModel(
-          id: 1,
-          name: 'Computer Science 101',
-          description: 'Introduction to Programming',
-          joinCode: 'CS101ABC',
-          teacherId: 1,
-          teacherName: 'Dr. Smith',
-          totalStudents: 25,
-          createdAt: DateTime.now().subtract(const Duration(days: 30)),
-        ),
-        ClassModel(
-          id: 2,
-          name: 'Data Structures',
-          description: 'Advanced Data Structures and Algorithms',
-          joinCode: 'DS202XYZ',
-          teacherId: 1,
-          teacherName: 'Dr. Smith',
-          totalStudents: 30,
-          createdAt: DateTime.now().subtract(const Duration(days: 15)),
-        ),
-      ];
-    });
+      print('🔥 FLUTTER: Loading created classes from API...');
+      final classes = await _apiService.getMyClasses();
+
+      setState(() {
+        _createdClasses = classes;
+        _isLoading = false;
+      });
+
+      print('🔥 FLUTTER: Loaded ${classes.length} created classes');
+    } catch (e) {
+      print('🔥 FLUTTER: Error loading created classes: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+        _createdClasses = []; // Clear any existing data
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load classes: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _createClass() async {
     final className = _classNameController.text.trim();
+    final description = _descriptionController.text.trim();
 
     if (className.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,19 +90,48 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
       return;
     }
 
-    // TODO: Implement create class API call
-    Navigator.pop(context);
-    _classNameController.clear();
-    _descriptionController.clear();
+    setState(() {
+      _isLoading = true;
+    });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Class created successfully!'),
-        backgroundColor: AppTheme.successColor,
-      ),
-    );
+    try {
+      // Get token from auth provider and set in API service
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.token != null) {
+        _apiService.setToken(authProvider.token);
+      }
 
-    _loadCreatedClasses();
+      print('🔥 FLUTTER: Creating class: $className');
+      await _apiService.createClass(name: className, description: description);
+
+      Navigator.pop(context);
+      _classNameController.clear();
+      _descriptionController.clear();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Class created successfully!'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
+
+      // Reload the classes list
+      _loadCreatedClasses();
+    } catch (e) {
+      print('🔥 FLUTTER: Error creating class: $e');
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create class: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 
   void _showCreateClassDialog() {

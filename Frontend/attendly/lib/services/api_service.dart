@@ -49,7 +49,7 @@ class ApiService {
     required String password,
   }) async {
     print('🔥 FLUTTER: Starting registration');
-    print('🔥 FLUTTER: URL: $baseUrl/auth/signup');
+    print('🔥 FLUTTER: URL: $baseUrl/api/auth/signup');
     print('🔥 FLUTTER: Headers: $headers');
     print(
       '🔥 FLUTTER: Data: firstName=$firstName, lastName=$lastName, email=$email',
@@ -67,7 +67,7 @@ class ApiService {
 
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/auth/signup'),
+        Uri.parse('$baseUrl/api/auth/signup'),
         headers: headers,
         body: jsonEncode(requestBody),
       );
@@ -88,7 +88,7 @@ class ApiService {
     required String password,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/auth/login'),
+      Uri.parse('$baseUrl/api/auth/login'),
       headers: headers,
       body: jsonEncode({'email': email, 'password': password}),
     );
@@ -97,18 +97,35 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> updateUserRole(String role) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/auth/update-role'),
-      headers: headers,
-      body: jsonEncode({'role': role}),
-    );
+    print('🔥 FLUTTER: Starting updateUserRole');
+    print('🔥 FLUTTER: Role: $role');
+    print('🔥 FLUTTER: URL: $baseUrl/api/auth/update-role');
+    print('🔥 FLUTTER: Headers: $headers');
 
-    return _handleResponse(response);
+    final requestBody = {'role': role};
+    print('🔥 FLUTTER: Request body: $requestBody');
+
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/auth/update-role'),
+        headers: headers,
+        body: jsonEncode(requestBody),
+      );
+
+      print('🔥 FLUTTER: UpdateRole response status: ${response.statusCode}');
+      print('🔥 FLUTTER: UpdateRole response headers: ${response.headers}');
+      print('🔥 FLUTTER: UpdateRole response body: ${response.body}');
+
+      return _handleResponse(response);
+    } catch (e) {
+      print('🔥 FLUTTER: Exception in updateUserRole: $e');
+      rethrow;
+    }
   }
 
   Future<void> logout() async {
     final response = await http.post(
-      Uri.parse('$baseUrl/auth/logout'),
+      Uri.parse('$baseUrl/api/auth/logout'),
       headers: headers,
     );
 
@@ -140,44 +157,97 @@ class ApiService {
     required String name,
     required String description,
   }) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/classes/create'),
-      headers: headers,
-      body: jsonEncode({'name': name, 'description': description}),
-    );
+    print('🔥 FLUTTER: Creating class: $name');
+    print('🔥 FLUTTER: URL: $baseUrl/api/classes/create');
 
-    return _handleResponse(response);
+    final requestBody = {'name': name, 'description': description};
+    print('🔥 FLUTTER: Request body: $requestBody');
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/classes/create'),
+        headers: headers,
+        body: jsonEncode(requestBody),
+      );
+
+      print('🔥 FLUTTER: CreateClass response status: ${response.statusCode}');
+      print('🔥 FLUTTER: CreateClass response body: ${response.body}');
+
+      return _handleResponse(response);
+    } catch (e) {
+      print('🔥 FLUTTER: Exception in createClass: $e');
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> joinClass(String joinCode) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/classes/join'),
-      headers: headers,
-      body: jsonEncode({'join_code': joinCode}),
-    );
+    print('🔥 FLUTTER: Joining class with code: $joinCode');
+    print('🔥 FLUTTER: URL: $baseUrl/api/classes/join');
 
-    return _handleResponse(response);
+    final requestBody = {'join_code': joinCode};
+    print('🔥 FLUTTER: Request body: $requestBody');
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/classes/join'),
+        headers: headers,
+        body: jsonEncode(requestBody),
+      );
+
+      print('🔥 FLUTTER: JoinClass response status: ${response.statusCode}');
+      print('🔥 FLUTTER: JoinClass response body: ${response.body}');
+
+      return _handleResponse(response);
+    } catch (e) {
+      print('🔥 FLUTTER: Exception in joinClass: $e');
+      rethrow;
+    }
   }
 
   Future<List<ClassModel>> getMyClasses() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/classes/my-classes'),
-      headers: headers,
-    );
+    print('🔥 FLUTTER: Getting my classes');
+    print('🔥 FLUTTER: URL: $baseUrl/api/classes/my-classes');
+    print('🔥 FLUTTER: Headers: $headers');
 
-    final data = _handleResponse(response);
-    final classes = data['classes'] as List;
-    return classes.map((json) => ClassModel.fromJson(json)).toList();
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/classes/my-classes'),
+        headers: headers,
+      );
+
+      print('🔥 FLUTTER: GetMyClasses response status: ${response.statusCode}');
+      print('🔥 FLUTTER: GetMyClasses response body: ${response.body}');
+
+      final data = _handleResponse(response);
+      final classes = data['classes'] as List;
+      return classes.map((json) => ClassModel.fromJson(json)).toList();
+    } catch (e) {
+      print('🔥 FLUTTER: Exception in getMyClasses: $e');
+      rethrow;
+    }
   }
 
   Future<ClassModel> getClassDetail(int classId) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/classes/$classId'),
-      headers: headers,
-    );
+    print('🔥 FLUTTER: Getting class detail for ID: $classId');
+    print('🔥 FLUTTER: URL: $baseUrl/api/classes/$classId');
 
-    final data = _handleResponse(response);
-    return ClassModel.fromJson(data['class']);
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/classes/$classId'),
+        headers: headers,
+      );
+
+      print(
+        '🔥 FLUTTER: GetClassDetail response status: ${response.statusCode}',
+      );
+      print('🔥 FLUTTER: GetClassDetail response body: ${response.body}');
+
+      final data = _handleResponse(response);
+      return ClassModel.fromJson(data['class']);
+    } catch (e) {
+      print('🔥 FLUTTER: Exception in getClassDetail: $e');
+      rethrow;
+    }
   }
 
   // Attendance endpoints
