@@ -79,6 +79,11 @@ def create_app():
     app.register_blueprint(face_data_bp, url_prefix='/api/face-data')
     app.register_blueprint(attendance_bp, url_prefix='/api/attendance')
     
+    # Debug: Print all registered routes
+    print("🔥 REGISTERED ROUTES:")
+    for rule in app.url_map.iter_rules():
+        print(f"🔥 {rule.endpoint}: {rule.rule} [{', '.join(rule.methods)}]")
+    
     # Health check endpoint
     @app.route('/health')
     def health_check():
