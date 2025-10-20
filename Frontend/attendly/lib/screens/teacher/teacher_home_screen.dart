@@ -6,6 +6,8 @@ import '../../services/api_service.dart';
 import '../../widgets/custom_widgets.dart';
 import '../../utils/app_theme.dart';
 import '../../models/class.dart';
+import '../class_detail_screen.dart';
+import '../account_screen.dart';
 
 class TeacherHomeScreen extends StatefulWidget {
   const TeacherHomeScreen({super.key});
@@ -195,7 +197,10 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
           IconButton(
             icon: const Icon(Icons.account_circle),
             onPressed: () {
-              // TODO: Show profile
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AccountScreen()),
+              );
             },
           ),
         ],
@@ -402,7 +407,13 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   Widget _buildClassCard(ClassModel classModel) {
     return AnimatedCard(
       onTap: () {
-        // TODO: Navigate to class detail screen with calendar and student list
+        // Navigate to class detail screen with calendar and student list
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ClassDetailScreen(classModel: classModel),
+          ),
+        );
       },
       padding: const EdgeInsets.all(20),
       child: Column(

@@ -5,7 +5,9 @@ import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/custom_widgets.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/routes.dart';
 import '../../models/class.dart';
+import '../account_screen.dart';
 
 class StudentHomeScreen extends StatefulWidget {
   const StudentHomeScreen({super.key});
@@ -20,12 +22,38 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
   final ApiService _apiService = ApiService();
   List<ClassModel> _enrolledClasses = [];
   bool _isLoading = false;
+  bool _hasFaceData = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadEnrolledClasses();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    await Future.wait([_loadEnrolledClasses(), _checkFaceDataStatus()]);
+  }
+
+  Future<void> _checkFaceDataStatus() async {
+    try {
+      // Get token from auth provider and set in API service
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.token != null) {
+        _apiService.setToken(authProvider.token);
+      }
+
+      final response = await _apiService.getStudentFaceDataStatus();
+      print('🔥 FLUTTER: Face data status response: $response');
+      print('🔥 FLUTTER: Registered value: ${response['registered']}');
+      setState(() {
+        _hasFaceData = response['registered'] ?? false;
+        print('🔥 FLUTTER: _hasFaceData set to: $_hasFaceData');
+      });
+    } catch (e) {
+      print('🔥 FLUTTER: Error checking face data status: $e');
+      // Don't show error for face data status, it's not critical
+    }
   }
 
   @override
@@ -131,6 +159,50 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
   }
 
   void _showJoinClassDialog() {
+    // Check if student has registered facial data first
+    if (!_hasFaceData) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.amber.shade700),
+              const SizedBox(width: 8),
+              const Text('Facial Data Required'),
+            ],
+          ),
+          content: const Text(
+            'You need to register your facial data before joining a class. Please register your face data from the Account page.',
+            style: TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, Routes.faceCapture);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber.shade700,
+              ),
+              child: const Text(
+                'Register Now',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // Show join class dialog if facial data is registered
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -149,6 +221,96 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
         ],
       ),
     );
+  }
+
+  void _showLeaveClassDialog(ClassModel classModel) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppTheme.warningColor),
+            const SizedBox(width: 8),
+            const Text('Leave Class'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to leave "${classModel.name}"?\n\nYou will lose access to all class materials and attendance records.',
+          style: const TextStyle(fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _leaveClass(classModel);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+            ),
+            child: const Text(
+              'Leave Class',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _leaveClass(ClassModel classModel) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      print(
+        '🔥 FLUTTER: Leaving class: ${classModel.name} (ID: ${classModel.id})',
+      );
+
+      await _apiService.leaveClass(classId: classModel.id);
+
+      if (!mounted) return;
+
+      // Remove the class from the list
+      setState(() {
+        _enrolledClasses.removeWhere((c) => c.id == classModel.id);
+        _isLoading = false;
+      });
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Successfully left "${classModel.name}"'),
+          backgroundColor: AppTheme.successColor,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      print('🔥 FLUTTER: Successfully left class');
+    } catch (e) {
+      print('🔥 FLUTTER: Error leaving class: $e');
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to leave class: ${e.toString()}'),
+          backgroundColor: AppTheme.errorColor,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 
   @override
@@ -179,13 +341,16 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
           IconButton(
             icon: const Icon(Icons.account_circle),
             onPressed: () {
-              // TODO: Show profile
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AccountScreen()),
+              );
             },
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _loadEnrolledClasses,
+        onRefresh: _loadData,
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
@@ -241,6 +406,60 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
                             Expanded(
                               child: AnimatedCard(
                                 onTap: () {
+                                  // Check if student has facial data before allowing QR scan
+                                  if (!_hasFaceData) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                        ),
+                                        title: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.warning_amber_rounded,
+                                              color: Colors.amber.shade700,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Text('Facial Data Required'),
+                                          ],
+                                        ),
+                                        content: const Text(
+                                          'You need to register your facial data before joining a class. Please register your face data from the Account page.',
+                                          style: TextStyle(fontSize: 15),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              Navigator.pushNamed(
+                                                context,
+                                                Routes.faceCapture,
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.amber.shade700,
+                                            ),
+                                            child: const Text(
+                                              'Register Now',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    return;
+                                  }
                                   // TODO: Show QR scanner
                                 },
                                 padding: const EdgeInsets.all(20),
@@ -455,6 +674,26 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
                 ],
               ),
             ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Leave Class Button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _showLeaveClassDialog(classModel),
+              icon: const Icon(Icons.exit_to_app, size: 18),
+              label: const Text('Leave Class'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.errorColor,
+                side: BorderSide(color: AppTheme.errorColor.withOpacity(0.5)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
           ),
         ],
       ),

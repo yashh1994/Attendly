@@ -150,7 +150,7 @@ class FaceData(db.Model):
     is_active = db.Column(db.Boolean, default=True, index=True)
     
     # Additional fields for PostgreSQL
-    encoding_version = db.Column(db.String(20), default='v1.0')  # Track encoding version
+    encoding_version = db.Column(db.String(50), default='v1.0')  # Track encoding version (increased to 50)
     confidence_score = db.Column(db.Float, nullable=True)  # Store confidence if available
     
     def to_dict(self):

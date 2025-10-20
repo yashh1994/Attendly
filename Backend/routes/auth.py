@@ -301,3 +301,27 @@ def verify_token():
         print(f"🔥 VERIFY TOKEN: ERROR - Exception occurred: {str(e)}")
         print(f"🔥 VERIFY TOKEN: ERROR - Exception type: {type(e)}")
         return jsonify({'error': 'Invalid token', 'details': str(e)}), 401
+
+@auth_bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    """Logout user (client-side should clear token)"""
+    try:
+        current_user = get_current_user()
+        
+        if current_user:
+            print(f"🔥 LOGOUT: User {current_user.id} ({current_user.email}) logging out")
+        
+        # Since we're using JWT tokens (stateless), the actual logout happens client-side
+        # by clearing the token. This endpoint is just for logging purposes.
+        return jsonify({
+            'success': True,
+            'message': 'Logged out successfully'
+        }), 200
+        
+    except Exception as e:
+        print(f"🔥 LOGOUT: ERROR - {str(e)}")
+        return jsonify({
+            'success': True,
+            'message': 'Logged out successfully'
+        }), 200  # Return success anyway since logout is client-side

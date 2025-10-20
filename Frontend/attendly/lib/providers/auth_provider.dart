@@ -34,13 +34,27 @@ class AuthProvider extends ChangeNotifier {
     _token = _prefs.getString(_tokenKey);
     final userData = _prefs.getString(_userKey);
 
+    print('🔥 AUTH_PROVIDER: Loading auth data...');
+    print('🔥 AUTH_PROVIDER: Token found: ${_token != null}');
+    print('🔥 AUTH_PROVIDER: User data found: ${userData != null}');
+
     if (userData != null) {
       try {
         final userMap = jsonDecode(userData);
         _user = User.fromJson(userMap);
+        print(
+          '🔥 AUTH_PROVIDER: User loaded: ${_user?.email}, Role: ${_user?.role}',
+        );
       } catch (e) {
+        print('🔥 AUTH_PROVIDER: Error loading user data: $e');
         clearAuthData();
       }
+    }
+
+    // IMPORTANT: Set the token in ApiService when loading saved auth data
+    if (_token != null) {
+      _apiService.setToken(_token);
+      print('🔥 FLUTTER: Token loaded and set in ApiService: $_token');
     }
   }
 
@@ -196,6 +210,10 @@ class AuthProvider extends ChangeNotifier {
       _token = response['access_token'];
       _user = User.fromJson(response['user']);
 
+      // IMPORTANT: Set the token in ApiService so it's included in all future requests
+      _apiService.setToken(_token);
+      print('🔥 FLUTTER: Token set in ApiService after login: $_token');
+
       await _saveAuthData();
       _setLoading(false);
 
@@ -226,7 +244,11 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(true);
       clearError();
 
-      final response = await _apiService.uploadFaceData(images);
+      // Use the new student-specific facial data upload API
+      final response = await _apiService.studentUploadFacialData(
+        images: images,
+        replaceExisting: true,
+      );
 
       _setLoading(false);
       return response['success'] ?? false;

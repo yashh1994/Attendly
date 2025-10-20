@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import '../../models/class.dart';
-import '../../models/attendance.dart';
-import '../../services/static_api_service.dart';
-import '../../widgets/custom_widgets.dart';
+import 'package:provider/provider.dart';
+import '../models/class.dart';
+import '../models/attendance.dart';
+import '../services/api_service.dart';
+import '../providers/auth_provider.dart';
+import '../widgets/custom_widgets.dart';
+import '../utils/app_theme.dart';
 
 class ClassDetailScreen extends StatefulWidget {
   final ClassModel classModel;
@@ -19,17 +23,20 @@ class ClassDetailScreen extends StatefulWidget {
 class _ClassDetailScreenState extends State<ClassDetailScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
+  final ApiService _apiService = ApiService();
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
 
   List<AttendanceSession> _attendanceSessions = [];
-  List<dynamic> _students = [];
+  List<Map<String, dynamic>> _students = [];
   bool _isLoadingStudents = false;
+  bool _isLoadingSessions = false;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _loadAttendanceSessions();
     _loadStudents();
   }
@@ -41,42 +48,88 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
   }
 
   Future<void> _loadAttendanceSessions() async {
-    setState(() => _isLoadingStudents = true);
+    setState(() {
+      _isLoadingSessions = true;
+      _error = null;
+    });
+
     try {
-      final sessions = await StaticApiService.getAttendanceSessions(
-        widget.classModel.id.toString(),
+      // Get token from auth provider and set in API service
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.token != null) {
+        _apiService.setToken(authProvider.token);
+      }
+
+      print(
+        '🔥 FLUTTER: Loading attendance sessions for class ${widget.classModel.id}',
       );
+      final sessions = await _apiService.getClassSessions(widget.classModel.id);
+
       setState(() {
         _attendanceSessions = sessions;
+        _isLoadingSessions = false;
       });
+
+      print('🔥 FLUTTER: Loaded ${sessions.length} attendance sessions');
     } catch (e) {
+      print('🔥 FLUTTER: Error loading attendance sessions: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoadingSessions = false;
+        _attendanceSessions = [];
+      });
+
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading sessions: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to load attendance sessions: ${e.toString()}',
+            ),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
       }
-    } finally {
-      setState(() => _isLoadingStudents = false);
     }
   }
 
   Future<void> _loadStudents() async {
-    setState(() => _isLoadingStudents = true);
+    setState(() {
+      _isLoadingStudents = true;
+      _error = null;
+    });
+
     try {
-      final students = await StaticApiService.getClassStudents(
-        widget.classModel.id.toString(),
-      );
+      // Get token from auth provider and set in API service
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.token != null) {
+        _apiService.setToken(authProvider.token);
+      }
+
+      print('🔥 FLUTTER: Loading students for class ${widget.classModel.id}');
+      final students = await _apiService.getClassStudents(widget.classModel.id);
+
       setState(() {
         _students = students;
+        _isLoadingStudents = false;
       });
+
+      print('🔥 FLUTTER: Loaded ${students.length} students');
     } catch (e) {
+      print('🔥 FLUTTER: Error loading students: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoadingStudents = false;
+        _students = [];
+      });
+
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading students: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load students: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
       }
-    } finally {
-      setState(() => _isLoadingStudents = false);
     }
   }
 
@@ -100,8 +153,6 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -125,23 +176,18 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
           tabs: const [
             Tab(text: 'Calendar', icon: Icon(Icons.calendar_today)),
             Tab(text: 'Students', icon: Icon(Icons.people)),
-            Tab(text: 'Statistics', icon: Icon(Icons.analytics)),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildCalendarTab(),
-          _buildStudentsTab(),
-          _buildStatisticsTab(),
-        ],
+        children: [_buildCalendarTab(), _buildStudentsTab()],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _navigateToAttendanceCapture(),
+        onPressed: () => _takeAttendanceForDay(DateTime.now()),
         icon: const Icon(Icons.camera_alt),
         label: const Text('Take Attendance'),
-        backgroundColor: theme.colorScheme.primary,
+        backgroundColor: AppTheme.primaryColor,
       ),
     );
   }
@@ -234,16 +280,30 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
           ),
           const Divider(),
           if (sessions.isEmpty)
-            const Expanded(
+            Expanded(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.event_busy, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text(
-                      'No sessions on this day',
+                    const Icon(Icons.event_busy, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No attendance taken for this day',
                       style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => _takeAttendanceForDay(_selectedDay),
+                      icon: const Icon(Icons.camera_alt),
+                      label: const Text('Take Attendance'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -305,6 +365,52 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
     );
   }
 
+  void _takeAttendanceForDay(DateTime selectedDay) {
+    // Navigate to attendance capture screen
+    // TODO: Implement attendance capture screen navigation
+    print('🔥 Taking attendance for ${selectedDay.toString().split(' ')[0]}');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Taking attendance for ${selectedDay.toString().split(' ')[0]}',
+        ),
+        backgroundColor: AppTheme.primaryColor,
+      ),
+    );
+  }
+
+  Future<void> _copyJoinCode() async {
+    try {
+      await Clipboard.setData(ClipboardData(text: widget.classModel.joinCode));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check, color: Colors.white),
+                const SizedBox(width: 8),
+                Text('Join code "${widget.classModel.joinCode}" copied!'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to copy join code: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildStudentsTab() {
     if (_isLoadingStudents) {
       return const Center(child: CircularProgressIndicator());
@@ -341,26 +447,38 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            size: 32,
-                            color: Colors.green,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            widget.classModel.joinCode,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                  child: InkWell(
+                    onTap: () => _copyJoinCode(),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.copy,
+                              size: 32,
+                              color: Colors.green,
                             ),
-                          ),
-                          const Text('Join Code'),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              widget.classModel.joinCode,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Text('Join Code'),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Tap to copy',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -466,122 +584,9 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
     );
   }
 
-  Widget _buildStatisticsTab() {
-    final totalSessions = _attendanceSessions.length;
-    final avgAttendance = totalSessions > 0
-        ? _attendanceSessions
-                  .map((s) => s.presentCount / s.totalStudents)
-                  .reduce((a, b) => a + b) /
-              totalSessions
-        : 0.0;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Class Overview',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: AnimatedCard(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.event, size: 40, color: Colors.blue),
-                        const SizedBox(height: 12),
-                        Text(
-                          '$totalSessions',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Text('Total Sessions'),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: AnimatedCard(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.trending_up,
-                          size: 40,
-                          color: Colors.green,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          '${(avgAttendance * 100).round()}%',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Text('Avg Attendance'),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Recent Sessions',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          ..._attendanceSessions
-              .take(5)
-              .map((session) => _buildSessionCard(session))
-              .toList(),
-        ],
-      ),
-    );
-  }
-
-  void _navigateToAttendanceCapture() {
-    // TODO: Navigate to attendance capture screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Attendance capture feature coming soon!')),
-    );
-    /*
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AttendanceCaptureScreen(
-          classModel: widget.classModel,
-          onAttendanceTaken: _loadAttendanceSessions,
-        ),
-      ),
-    );
-    */
-  }
-
   void _shareClass() {
-    // TODO: Implement class sharing
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Join Code: ${widget.classModel.joinCode}'),
-        action: SnackBarAction(
-          label: 'COPY',
-          onPressed: () {
-            // Copy to clipboard
-          },
-        ),
-      ),
-    );
+    // Copy join code and show sharing options
+    _copyJoinCode();
   }
 
   void _editClass() {

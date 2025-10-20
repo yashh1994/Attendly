@@ -8,6 +8,7 @@ class Routes {
   static const String teacherHome = '/teacher-home';
   static const String classDetail = '/class-detail';
   static const String attendance = '/attendance';
+  static const String account = '/account';
   static const String studentProfile = '/student-profile';
   static const String studentStatistics = '/student-statistics';
   static const String settings = '/settings';

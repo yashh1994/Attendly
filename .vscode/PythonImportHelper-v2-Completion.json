@@ -1,0 +1,1656 @@
+[
+    {
+        "label": "db",
+        "importPath": "app",
+        "description": "app",
+        "isExtraImport": true,
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "create_app",
+        "importPath": "app",
+        "description": "app",
+        "isExtraImport": true,
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "db",
+        "importPath": "app",
+        "description": "app",
+        "isExtraImport": true,
+        "detail": "app",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "date",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "generate_password_hash",
+        "importPath": "werkzeug.security",
+        "description": "werkzeug.security",
+        "isExtraImport": true,
+        "detail": "werkzeug.security",
+        "documentation": {}
+    },
+    {
+        "label": "check_password_hash",
+        "importPath": "werkzeug.security",
+        "description": "werkzeug.security",
+        "isExtraImport": true,
+        "detail": "werkzeug.security",
+        "documentation": {}
+    },
+    {
+        "label": "generate_password_hash",
+        "importPath": "werkzeug.security",
+        "description": "werkzeug.security",
+        "isExtraImport": true,
+        "detail": "werkzeug.security",
+        "documentation": {}
+    },
+    {
+        "label": "check_password_hash",
+        "importPath": "werkzeug.security",
+        "description": "werkzeug.security",
+        "isExtraImport": true,
+        "detail": "werkzeug.security",
+        "documentation": {}
+    },
+    {
+        "label": "secrets",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "secrets",
+        "description": "secrets",
+        "detail": "secrets",
+        "documentation": {}
+    },
+    {
+        "label": "string",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "string",
+        "description": "string",
+        "detail": "string",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "Blueprint",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "request",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "jsonify",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "current_app",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "Blueprint",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "request",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "jsonify",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "Blueprint",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "request",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "jsonify",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "Blueprint",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "request",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "jsonify",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "current_app",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "Flask",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "Flask",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "jwt_required",
+        "importPath": "flask_jwt_extended",
+        "description": "flask_jwt_extended",
+        "isExtraImport": true,
+        "detail": "flask_jwt_extended",
+        "documentation": {}
+    },
+    {
+        "label": "get_jwt_identity",
+        "importPath": "flask_jwt_extended",
+        "description": "flask_jwt_extended",
+        "isExtraImport": true,
+        "detail": "flask_jwt_extended",
+        "documentation": {}
+    },
+    {
+        "label": "create_access_token",
+        "importPath": "flask_jwt_extended",
+        "description": "flask_jwt_extended",
+        "isExtraImport": true,
+        "detail": "flask_jwt_extended",
+        "documentation": {}
+    },
+    {
+        "label": "jwt_required",
+        "importPath": "flask_jwt_extended",
+        "description": "flask_jwt_extended",
+        "isExtraImport": true,
+        "detail": "flask_jwt_extended",
+        "documentation": {}
+    },
+    {
+        "label": "get_jwt_identity",
+        "importPath": "flask_jwt_extended",
+        "description": "flask_jwt_extended",
+        "isExtraImport": true,
+        "detail": "flask_jwt_extended",
+        "documentation": {}
+    },
+    {
+        "label": "jwt_required",
+        "importPath": "flask_jwt_extended",
+        "description": "flask_jwt_extended",
+        "isExtraImport": true,
+        "detail": "flask_jwt_extended",
+        "documentation": {}
+    },
+    {
+        "label": "get_jwt_identity",
+        "importPath": "flask_jwt_extended",
+        "description": "flask_jwt_extended",
+        "isExtraImport": true,
+        "detail": "flask_jwt_extended",
+        "documentation": {}
+    },
+    {
+        "label": "jwt_required",
+        "importPath": "flask_jwt_extended",
+        "description": "flask_jwt_extended",
+        "isExtraImport": true,
+        "detail": "flask_jwt_extended",
+        "documentation": {}
+    },
+    {
+        "label": "get_jwt_identity",
+        "importPath": "flask_jwt_extended",
+        "description": "flask_jwt_extended",
+        "isExtraImport": true,
+        "detail": "flask_jwt_extended",
+        "documentation": {}
+    },
+    {
+        "label": "JWTManager",
+        "importPath": "flask_jwt_extended",
+        "description": "flask_jwt_extended",
+        "isExtraImport": true,
+        "detail": "flask_jwt_extended",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "Class",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "ClassEnrollment",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "FaceData",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceSession",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceRecord",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "db",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "db",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "Class",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "ClassEnrollment",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "FaceData",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "db",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "FaceData",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "db",
+        "importPath": "models.models",
+        "description": "models.models",
+        "isExtraImport": true,
+        "detail": "models.models",
+        "documentation": {}
+    },
+    {
+        "label": "face_recognition",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "face_recognition",
+        "description": "face_recognition",
+        "detail": "face_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "numpy",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "numpy",
+        "description": "numpy",
+        "detail": "numpy",
+        "documentation": {}
+    },
+    {
+        "label": "base64",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "base64",
+        "description": "base64",
+        "detail": "base64",
+        "documentation": {}
+    },
+    {
+        "label": "cv2",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "cv2",
+        "description": "cv2",
+        "detail": "cv2",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "io",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "io",
+        "description": "io",
+        "detail": "io",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "re",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "re",
+        "description": "re",
+        "detail": "re",
+        "documentation": {}
+    },
+    {
+        "label": "IntegrityError",
+        "importPath": "sqlalchemy.exc",
+        "description": "sqlalchemy.exc",
+        "isExtraImport": true,
+        "detail": "sqlalchemy.exc",
+        "documentation": {}
+    },
+    {
+        "label": "pickle",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pickle",
+        "description": "pickle",
+        "detail": "pickle",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "uuid",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "uuid",
+        "description": "uuid",
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
+        "label": "ABC",
+        "importPath": "abc",
+        "description": "abc",
+        "isExtraImport": true,
+        "detail": "abc",
+        "documentation": {}
+    },
+    {
+        "label": "abstractmethod",
+        "importPath": "abc",
+        "description": "abc",
+        "isExtraImport": true,
+        "detail": "abc",
+        "documentation": {}
+    },
+    {
+        "label": "SQLAlchemy",
+        "importPath": "flask_sqlalchemy",
+        "description": "flask_sqlalchemy",
+        "isExtraImport": true,
+        "detail": "flask_sqlalchemy",
+        "documentation": {}
+    },
+    {
+        "label": "CORS",
+        "importPath": "flask_cors",
+        "description": "flask_cors",
+        "isExtraImport": true,
+        "detail": "flask_cors",
+        "documentation": {}
+    },
+    {
+        "label": "CORS",
+        "importPath": "flask_cors",
+        "description": "flask_cors",
+        "isExtraImport": true,
+        "detail": "flask_cors",
+        "documentation": {}
+    },
+    {
+        "label": "Migrate",
+        "importPath": "flask_migrate",
+        "description": "flask_migrate",
+        "isExtraImport": true,
+        "detail": "flask_migrate",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "db",
+        "importPath": "database",
+        "description": "database",
+        "isExtraImport": true,
+        "detail": "database",
+        "documentation": {}
+    },
+    {
+        "label": "jwt",
+        "importPath": "database",
+        "description": "database",
+        "isExtraImport": true,
+        "detail": "database",
+        "documentation": {}
+    },
+    {
+        "label": "auth_bp",
+        "importPath": "routes.auth",
+        "description": "routes.auth",
+        "isExtraImport": true,
+        "detail": "routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "requests",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "requests",
+        "description": "requests",
+        "detail": "requests",
+        "documentation": {}
+    },
+    {
+        "label": "traceback",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "traceback",
+        "description": "traceback",
+        "detail": "traceback",
+        "documentation": {}
+    },
+    {
+        "label": "lldb",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "lldb",
+        "description": "lldb",
+        "detail": "lldb",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "kind": 6,
+        "importPath": "Backend.models.models",
+        "description": "Backend.models.models",
+        "peekOfCode": "class User(db.Model):\n    __tablename__ = 'users'\n    id = db.Column(db.Integer, primary_key=True)\n    email = db.Column(db.String(120), unique=True, nullable=False, index=True)\n    password_hash = db.Column(db.String(255), nullable=False)\n    first_name = db.Column(db.String(80), nullable=False)\n    last_name = db.Column(db.String(80), nullable=False)\n    role = db.Column(db.Enum('teacher', 'student', name='user_roles'), nullable=False, index=True)\n    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)\n    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)",
+        "detail": "Backend.models.models",
+        "documentation": {}
+    },
+    {
+        "label": "Class",
+        "kind": 6,
+        "importPath": "Backend.models.models",
+        "description": "Backend.models.models",
+        "peekOfCode": "class Class(db.Model):\n    __tablename__ = 'classes'\n    id = db.Column(db.Integer, primary_key=True)\n    name = db.Column(db.String(200), nullable=False, index=True)\n    description = db.Column(db.Text, nullable=True)\n    join_code = db.Column(db.String(10), unique=True, nullable=False, index=True)\n    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)\n    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)\n    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)\n    is_active = db.Column(db.Boolean, default=True, index=True)",
+        "detail": "Backend.models.models",
+        "documentation": {}
+    },
+    {
+        "label": "ClassEnrollment",
+        "kind": 6,
+        "importPath": "Backend.models.models",
+        "description": "Backend.models.models",
+        "peekOfCode": "class ClassEnrollment(db.Model):\n    __tablename__ = 'class_enrollments'\n    id = db.Column(db.Integer, primary_key=True)\n    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)\n    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=False, index=True)\n    enrolled_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)\n    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)\n    is_active = db.Column(db.Boolean, default=True, index=True)\n    # Unique constraint to prevent duplicate enrollments\n    __table_args__ = (",
+        "detail": "Backend.models.models",
+        "documentation": {}
+    },
+    {
+        "label": "FaceData",
+        "kind": 6,
+        "importPath": "Backend.models.models",
+        "description": "Backend.models.models",
+        "peekOfCode": "class FaceData(db.Model):\n    __tablename__ = 'face_data'\n    id = db.Column(db.Integer, primary_key=True)\n    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True, unique=True)\n    # Store vector DB reference instead of actual encoding\n    vector_db_id = db.Column(db.String(100), nullable=True, index=True)\n    encoding_metadata = db.Column(db.JSON, nullable=True)  # Store metadata as JSON\n    image_path = db.Column(db.String(255), nullable=True)\n    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)\n    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)",
+        "detail": "Backend.models.models",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceSession",
+        "kind": 6,
+        "importPath": "Backend.models.models",
+        "description": "Backend.models.models",
+        "peekOfCode": "class AttendanceSession(db.Model):\n    __tablename__ = 'attendance_sessions'\n    id = db.Column(db.Integer, primary_key=True)\n    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=False, index=True)\n    session_name = db.Column(db.String(200), nullable=False)\n    session_date = db.Column(db.Date, nullable=False, index=True, default=datetime.utcnow().date())\n    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)\n    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)\n    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)\n    is_active = db.Column(db.Boolean, default=True, index=True)",
+        "detail": "Backend.models.models",
+        "documentation": {}
+    },
+    {
+        "label": "AttendanceRecord",
+        "kind": 6,
+        "importPath": "Backend.models.models",
+        "description": "Backend.models.models",
+        "peekOfCode": "class AttendanceRecord(db.Model):\n    __tablename__ = 'attendance_records'\n    id = db.Column(db.Integer, primary_key=True)\n    session_id = db.Column(db.Integer, db.ForeignKey('attendance_sessions.id'), nullable=False, index=True)\n    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)\n    status = db.Column(db.Enum('present', 'absent', 'late', name='attendance_status'), \n                      nullable=False, default='present', index=True)\n    marked_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)\n    marked_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)\n    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)",
+        "detail": "Backend.models.models",
+        "documentation": {}
+    },
+    {
+        "label": "get_current_user",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def get_current_user():\n    \"\"\"Helper function to get current authenticated user\"\"\"\n    user_id = int(get_jwt_identity())\n    return User.query.get(user_id)\ndef get_vector_db():\n    \"\"\"Get vector database service\"\"\"\n    if hasattr(current_app, 'vector_db') and current_app.vector_db:\n        return current_app.vector_db\n    return None\ndef decode_base64_image(base64_string):",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "get_vector_db",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def get_vector_db():\n    \"\"\"Get vector database service\"\"\"\n    if hasattr(current_app, 'vector_db') and current_app.vector_db:\n        return current_app.vector_db\n    return None\ndef decode_base64_image(base64_string):\n    \"\"\"Decode base64 image string to numpy array\"\"\"\n    try:\n        if ',' in base64_string:\n            base64_string = base64_string.split(',')[1]",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "decode_base64_image",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def decode_base64_image(base64_string):\n    \"\"\"Decode base64 image string to numpy array\"\"\"\n    try:\n        if ',' in base64_string:\n            base64_string = base64_string.split(',')[1]\n        image_data = base64.b64decode(base64_string)\n        image = Image.open(io.BytesIO(image_data))\n        if image.mode != 'RGB':\n            image = image.convert('RGB')\n        return np.array(image)",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "extract_faces_from_image",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def extract_faces_from_image(image_array):\n    \"\"\"Extract all face encodings from an image\"\"\"\n    try:\n        face_locations = face_recognition.face_locations(image_array, model='hog')\n        if not face_locations:\n            return []\n        # Use large model for better accuracy in recognition\n        model = os.getenv('FACE_ENCODING_MODEL', 'large')\n        face_encodings = face_recognition.face_encodings(image_array, face_locations, model=model)\n        return face_encodings",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "match_faces_with_students_vector_db",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def match_faces_with_students_vector_db(face_encodings, class_id, tolerance=0.6):\n    \"\"\"Match detected faces with enrolled students using vector database\"\"\"\n    try:\n        vector_db = get_vector_db()\n        if not vector_db:\n            return match_faces_with_students_fallback(face_encodings, class_id, tolerance)\n        # Get enrolled students for this class\n        enrolled_students = db.session.query(User.id, User.first_name, User.last_name, User.email).join(\n            ClassEnrollment, User.id == ClassEnrollment.student_id\n        ).filter(",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "match_faces_with_students_fallback",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def match_faces_with_students_fallback(face_encodings, class_id, tolerance=0.6):\n    \"\"\"Fallback method using traditional face_recognition library\"\"\"\n    try:\n        # Get all enrolled students with face data for this class\n        enrolled_students = db.session.query(\n            User, FaceData, ClassEnrollment\n        ).join(\n            ClassEnrollment, User.id == ClassEnrollment.student_id\n        ).join(\n            FaceData, User.id == FaceData.user_id",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "recognize_faces",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def recognize_faces():\n    \"\"\"Process images and identify students from a specific class (Teacher only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'teacher':\n            return jsonify({'error': 'Only teachers can recognize faces for attendance'}), 403\n        data = request.get_json()\n        # Validate required fields",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "create_attendance_session",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def create_attendance_session():\n    \"\"\"Create a new attendance session for a class (Teacher only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'teacher':\n            return jsonify({'error': 'Only teachers can create attendance sessions'}), 403\n        data = request.get_json()\n        # Validate required fields",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "mark_attendance",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def mark_attendance():\n    \"\"\"Mark attendance for students in a specific session (Teacher only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'teacher':\n            return jsonify({'error': 'Only teachers can mark attendance'}), 403\n        data = request.get_json()\n        # Validate required fields",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "get_class_sessions",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def get_class_sessions(class_id):\n    \"\"\"Get all attendance sessions for a class\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        # Check access to class\n        if current_user.role == 'teacher':\n            class_obj = Class.query.filter_by(id=class_id, teacher_id=current_user.id, is_active=True).first()\n        else:",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "get_session_attendance",
+        "kind": 2,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "def get_session_attendance(session_id):\n    \"\"\"Get attendance records for a specific session\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        # Get session and verify access\n        if current_user.role == 'teacher':\n            session = AttendanceSession.query.join(Class).filter(\n                AttendanceSession.id == session_id,",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "attendance_bp",
+        "kind": 5,
+        "importPath": "Backend.routes.attendance",
+        "description": "Backend.routes.attendance",
+        "peekOfCode": "attendance_bp = Blueprint('attendance', __name__)\ndef get_current_user():\n    \"\"\"Helper function to get current authenticated user\"\"\"\n    user_id = int(get_jwt_identity())\n    return User.query.get(user_id)\ndef get_vector_db():\n    \"\"\"Get vector database service\"\"\"\n    if hasattr(current_app, 'vector_db') and current_app.vector_db:\n        return current_app.vector_db\n    return None",
+        "detail": "Backend.routes.attendance",
+        "documentation": {}
+    },
+    {
+        "label": "validate_email",
+        "kind": 2,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "def validate_email(email):\n    \"\"\"Validate email format\"\"\"\n    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'\n    return re.match(pattern, email) is not None\ndef validate_password(password):\n    \"\"\"Validate password strength (minimum 8 characters)\"\"\"\n    return len(password) >= 8\n@auth_bp.route('/signup', methods=['POST'])\ndef signup():\n    \"\"\"User registration endpoint\"\"\"",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "validate_password",
+        "kind": 2,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "def validate_password(password):\n    \"\"\"Validate password strength (minimum 8 characters)\"\"\"\n    return len(password) >= 8\n@auth_bp.route('/signup', methods=['POST'])\ndef signup():\n    \"\"\"User registration endpoint\"\"\"\n    print(\"🔥 SIGNUP ENDPOINT HIT!\")\n    print(f\"🔥 Request method: {request.method}\")\n    print(f\"🔥 Request URL: {request.url}\")\n    print(f\"🔥 Request headers: {dict(request.headers)}\")",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "signup",
+        "kind": 2,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "def signup():\n    \"\"\"User registration endpoint\"\"\"\n    print(\"🔥 SIGNUP ENDPOINT HIT!\")\n    print(f\"🔥 Request method: {request.method}\")\n    print(f\"🔥 Request URL: {request.url}\")\n    print(f\"🔥 Request headers: {dict(request.headers)}\")\n    try:\n        data = request.get_json()\n        print(f\"🔥 Request data: {data}\")\n        # Validate required fields",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "login",
+        "kind": 2,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "def login():\n    \"\"\"User login endpoint\"\"\"\n    try:\n        data = request.get_json()\n        # Validate required fields\n        if not data.get('email') or not data.get('password'):\n            return jsonify({'error': 'Email and password are required'}), 400\n        # Find user by email\n        user = User.query.filter_by(email=data['email'].lower()).first()\n        if not user or not user.check_password(data['password']):",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "get_profile",
+        "kind": 2,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "def get_profile():\n    \"\"\"Get current user profile\"\"\"\n    try:\n        user_id = int(get_jwt_identity())\n        user = User.query.get(user_id)\n        if not user:\n            return jsonify({'error': 'User not found'}), 404\n        return jsonify({\n            'user': user.to_dict()\n        }), 200",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "update_profile",
+        "kind": 2,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "def update_profile():\n    \"\"\"Update current user profile\"\"\"\n    try:\n        user_id = int(get_jwt_identity())\n        user = User.query.get(user_id)\n        if not user:\n            return jsonify({'error': 'User not found'}), 404\n        data = request.get_json()\n        # Update allowed fields\n        if 'first_name' in data:",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "change_password",
+        "kind": 2,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "def change_password():\n    \"\"\"Change user password\"\"\"\n    try:\n        user_id = int(get_jwt_identity())\n        user = User.query.get(user_id)\n        if not user:\n            return jsonify({'error': 'User not found'}), 404\n        data = request.get_json()\n        # Validate required fields\n        if not data.get('current_password') or not data.get('new_password'):",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "update_role",
+        "kind": 2,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "def update_role():\n    \"\"\"Update user role\"\"\"\n    try:\n        print(f\"🔥 UPDATE ROLE: Starting update role request\")\n        print(f\"🔥 UPDATE ROLE: Request headers: {dict(request.headers)}\")\n        print(f\"🔥 UPDATE ROLE: Request method: {request.method}\")\n        print(f\"🔥 UPDATE ROLE: Request URL: {request.url}\")\n        user_id_str = get_jwt_identity()\n        print(f\"🔥 UPDATE ROLE: User ID from JWT: {user_id_str}, Type: {type(user_id_str)}\")\n        user_id = int(user_id_str)",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "verify_token",
+        "kind": 2,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "def verify_token():\n    \"\"\"Verify if token is valid\"\"\"\n    try:\n        print(f\"🔥 VERIFY TOKEN: Starting token verification\")\n        print(f\"🔥 VERIFY TOKEN: Request headers: {dict(request.headers)}\")\n        user_id_str = get_jwt_identity()\n        print(f\"🔥 VERIFY TOKEN: User ID from JWT: {user_id_str}, Type: {type(user_id_str)}\")\n        user_id = int(user_id_str)\n        user = User.query.get(user_id)\n        print(f\"🔥 VERIFY TOKEN: User found: {user.to_dict() if user else 'None'}\")",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "logout",
+        "kind": 2,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "def logout():\n    \"\"\"Logout user (client-side should clear token)\"\"\"\n    try:\n        current_user = get_current_user()\n        if current_user:\n            print(f\"🔥 LOGOUT: User {current_user.id} ({current_user.email}) logging out\")\n        # Since we're using JWT tokens (stateless), the actual logout happens client-side\n        # by clearing the token. This endpoint is just for logging purposes.\n        return jsonify({\n            'success': True,",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "auth_bp",
+        "kind": 5,
+        "importPath": "Backend.routes.auth",
+        "description": "Backend.routes.auth",
+        "peekOfCode": "auth_bp = Blueprint('auth', __name__)\ndef validate_email(email):\n    \"\"\"Validate email format\"\"\"\n    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'\n    return re.match(pattern, email) is not None\ndef validate_password(password):\n    \"\"\"Validate password strength (minimum 8 characters)\"\"\"\n    return len(password) >= 8\n@auth_bp.route('/signup', methods=['POST'])\ndef signup():",
+        "detail": "Backend.routes.auth",
+        "documentation": {}
+    },
+    {
+        "label": "get_current_user",
+        "kind": 2,
+        "importPath": "Backend.routes.classes",
+        "description": "Backend.routes.classes",
+        "peekOfCode": "def get_current_user():\n    \"\"\"Helper function to get current authenticated user\"\"\"\n    user_id = int(get_jwt_identity())\n    return User.query.get(user_id)\n@classes_bp.route('/create', methods=['POST'])\n@jwt_required()\ndef create_class():\n    \"\"\"Create a new class (Teacher only)\"\"\"\n    try:\n        current_user = get_current_user()",
+        "detail": "Backend.routes.classes",
+        "documentation": {}
+    },
+    {
+        "label": "create_class",
+        "kind": 2,
+        "importPath": "Backend.routes.classes",
+        "description": "Backend.routes.classes",
+        "peekOfCode": "def create_class():\n    \"\"\"Create a new class (Teacher only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'teacher':\n            return jsonify({'error': 'Only teachers can create classes'}), 403\n        data = request.get_json()\n        # Validate required fields",
+        "detail": "Backend.routes.classes",
+        "documentation": {}
+    },
+    {
+        "label": "get_my_classes",
+        "kind": 2,
+        "importPath": "Backend.routes.classes",
+        "description": "Backend.routes.classes",
+        "peekOfCode": "def get_my_classes():\n    \"\"\"Get classes for current user (created classes for teachers, enrolled classes for students)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role == 'teacher':\n            # Get classes created by teacher\n            classes = Class.query.filter_by(teacher_id=current_user.id, is_active=True).all()\n            classes_data = [class_obj.to_dict() for class_obj in classes]",
+        "detail": "Backend.routes.classes",
+        "documentation": {}
+    },
+    {
+        "label": "get_class_details",
+        "kind": 2,
+        "importPath": "Backend.routes.classes",
+        "description": "Backend.routes.classes",
+        "peekOfCode": "def get_class_details(class_id):\n    \"\"\"Get details of a specific class\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        class_obj = Class.query.get(class_id)\n        if not class_obj:\n            return jsonify({'error': 'Class not found'}), 404\n        # Check if user has access to this class",
+        "detail": "Backend.routes.classes",
+        "documentation": {}
+    },
+    {
+        "label": "join_class",
+        "kind": 2,
+        "importPath": "Backend.routes.classes",
+        "description": "Backend.routes.classes",
+        "peekOfCode": "def join_class():\n    \"\"\"Join a class using join code (Student only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can join classes'}), 403\n        # Check if student has registered facial data\n        face_data = FaceData.query.filter_by(",
+        "detail": "Backend.routes.classes",
+        "documentation": {}
+    },
+    {
+        "label": "leave_class",
+        "kind": 2,
+        "importPath": "Backend.routes.classes",
+        "description": "Backend.routes.classes",
+        "peekOfCode": "def leave_class(class_id):\n    \"\"\"Leave a class (Student only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            print(f\"❌ Leave class failed: User not found\")\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            print(f\"❌ Leave class failed: User {current_user.email} is not a student (role: {current_user.role})\")\n            return jsonify({'error': 'Only students can leave classes'}), 403",
+        "detail": "Backend.routes.classes",
+        "documentation": {}
+    },
+    {
+        "label": "get_enrollment_status",
+        "kind": 2,
+        "importPath": "Backend.routes.classes",
+        "description": "Backend.routes.classes",
+        "peekOfCode": "def get_enrollment_status(class_id):\n    \"\"\"Get enrollment status for a specific class (Student only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can check enrollment status'}), 403\n        # Get class details\n        class_obj = Class.query.get(class_id)",
+        "detail": "Backend.routes.classes",
+        "documentation": {}
+    },
+    {
+        "label": "update_class",
+        "kind": 2,
+        "importPath": "Backend.routes.classes",
+        "description": "Backend.routes.classes",
+        "peekOfCode": "def update_class(class_id):\n    \"\"\"Update class details (Teacher only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'teacher':\n            return jsonify({'error': 'Only teachers can update classes'}), 403\n        class_obj = Class.query.get(class_id)\n        if not class_obj:",
+        "detail": "Backend.routes.classes",
+        "documentation": {}
+    },
+    {
+        "label": "regenerate_join_code",
+        "kind": 2,
+        "importPath": "Backend.routes.classes",
+        "description": "Backend.routes.classes",
+        "peekOfCode": "def regenerate_join_code(class_id):\n    \"\"\"Regenerate join code for a class (Teacher only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'teacher':\n            return jsonify({'error': 'Only teachers can regenerate join codes'}), 403\n        class_obj = Class.query.get(class_id)\n        if not class_obj:",
+        "detail": "Backend.routes.classes",
+        "documentation": {}
+    },
+    {
+        "label": "classes_bp",
+        "kind": 5,
+        "importPath": "Backend.routes.classes",
+        "description": "Backend.routes.classes",
+        "peekOfCode": "classes_bp = Blueprint('classes', __name__)\ndef get_current_user():\n    \"\"\"Helper function to get current authenticated user\"\"\"\n    user_id = int(get_jwt_identity())\n    return User.query.get(user_id)\n@classes_bp.route('/create', methods=['POST'])\n@jwt_required()\ndef create_class():\n    \"\"\"Create a new class (Teacher only)\"\"\"\n    try:",
+        "detail": "Backend.routes.classes",
+        "documentation": {}
+    },
+    {
+        "label": "get_current_user",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def get_current_user():\n    \"\"\"Helper function to get current authenticated user\"\"\"\n    user_id = int(get_jwt_identity())\n    return User.query.get(user_id)\ndef get_vector_db():\n    \"\"\"Get vector database service\"\"\"\n    if hasattr(current_app, 'vector_db') and current_app.vector_db:\n        return current_app.vector_db\n    return None\ndef decode_base64_image(base64_string):",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "get_vector_db",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def get_vector_db():\n    \"\"\"Get vector database service\"\"\"\n    if hasattr(current_app, 'vector_db') and current_app.vector_db:\n        return current_app.vector_db\n    return None\ndef decode_base64_image(base64_string):\n    \"\"\"Decode base64 image string to numpy array\"\"\"\n    try:\n        # Remove data URL prefix if present\n        if ',' in base64_string:",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "decode_base64_image",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def decode_base64_image(base64_string):\n    \"\"\"Decode base64 image string to numpy array\"\"\"\n    try:\n        # Remove data URL prefix if present\n        if ',' in base64_string:\n            base64_string = base64_string.split(',')[1]\n        # Decode base64 string\n        image_data = base64.b64decode(base64_string)\n        # Convert to PIL Image\n        image = Image.open(io.BytesIO(image_data))",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "extract_face_encoding",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def extract_face_encoding(image_array, model='large'):\n    \"\"\"Extract face encoding from image array\"\"\"\n    try:\n        # Use model specified in environment or default\n        face_model = os.getenv('FACE_ENCODING_MODEL', model)\n        # Find face locations in the image\n        face_locations = face_recognition.face_locations(image_array, model='hog')\n        if not face_locations:\n            current_app.logger.debug(\"No face detected in the image\")\n            return None  # Return None instead of raising exception",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "save_image_file",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def save_image_file(image_array, user_id):\n    \"\"\"Save image file to uploads directory\"\"\"\n    try:\n        # Create uploads directory if it doesn't exist\n        uploads_dir = 'uploads/face_images'\n        os.makedirs(uploads_dir, exist_ok=True)\n        # Generate filename with timestamp\n        from datetime import datetime\n        timestamp = datetime.now().strftime(\"%Y%m%d_%H%M%S\")\n        filename = f\"user_{user_id}_{timestamp}.jpg\"",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "upload_face_data",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def upload_face_data():\n    \"\"\"Upload and process face data for current user (Student only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can upload face data'}), 403\n        data = request.get_json()\n        if not data.get('image'):",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "upload_multiple_face_data",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def upload_multiple_face_data():\n    \"\"\"Upload multiple face images for better recognition accuracy\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can upload face data'}), 403\n        data = request.get_json()\n        if not data.get('images') or not isinstance(data['images'], list):",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "get_my_face_data",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def get_my_face_data():\n    \"\"\"Get current user's face data\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        face_data = FaceData.query.filter_by(\n            user_id=current_user.id,\n            is_active=True\n        ).first()",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "delete_face_data",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def delete_face_data():\n    \"\"\"Delete current user's face data\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        face_data = FaceData.query.filter_by(\n            user_id=current_user.id,\n            is_active=True\n        ).first()",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "register_student_face_data",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def register_student_face_data():\n    \"\"\"Register facial data for a student by capturing multiple images\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can register facial data'}), 403\n        # Check if student already has face data\n        existing_face_data = FaceData.query.filter_by(",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "get_student_face_data_status",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def get_student_face_data_status():\n    \"\"\"Get facial data registration status for current student\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can check facial data status'}), 403\n        # Check if student has face data\n        face_data = FaceData.query.filter_by(",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "get_face_data_stats",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def get_face_data_stats():\n    \"\"\"Get face data statistics (Teacher only)\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'teacher':\n            return jsonify({'error': 'Only teachers can view face data statistics'}), 403\n        # Get vector database stats\n        vector_db = get_vector_db()",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "upload_single_face_image",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def upload_single_face_image():\n    \"\"\"Upload a single face image during progressive capture\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can upload face data'}), 403\n        data = request.get_json()\n        if not data or 'image' not in data:",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "upload_batch_with_progress",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def upload_batch_with_progress():\n    \"\"\"Upload multiple images with detailed progress feedback\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can upload face data'}), 403\n        data = request.get_json()\n        if not data or 'images' not in data:",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "validate_face_image",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def validate_face_image():\n    \"\"\"Validate a single image for face detection before upload\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can validate face images'}), 403\n        data = request.get_json()\n        if not data or 'image' not in data:",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "upload_face_for_recognition",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def upload_face_for_recognition():\n    \"\"\"Upload facial data specifically for recognition/attendance purposes\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can upload facial data for recognition'}), 403\n        data = request.get_json()\n        if not data or 'images' not in data:",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "check_recognition_readiness",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def check_recognition_readiness():\n    \"\"\"Check if student's facial data is ready for recognition/attendance\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can check recognition readiness'}), 403\n        # Check face data\n        face_data = FaceData.query.filter_by(",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "test_face_recognition",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def test_face_recognition():\n    \"\"\"Test facial recognition with a new image against stored data\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can test their facial recognition'}), 403\n        data = request.get_json()\n        if not data or 'image' not in data:",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "student_upload_facial_data",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def student_upload_facial_data():\n    \"\"\"\n    PRODUCTION API: Upload 10 facial images for student registration\n    Request body:\n    {\n        \"images\": [\"base64_image1\", \"base64_image2\", ..., \"base64_image10\"],\n        \"replace_existing\": true/false (optional)\n    }\n    Response:\n    {",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "get_student_facial_status",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def get_student_facial_status():\n    \"\"\"Get detailed facial data status for current student\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can check facial status'}), 403\n        # Get facial data\n        face_data = FaceData.query.filter_by(",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "delete_student_facial_data",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def delete_student_facial_data():\n    \"\"\"Allow student to delete their facial data\"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'student':\n            return jsonify({'error': 'Only students can delete their facial data'}), 403\n        # Get facial data\n        face_data = FaceData.query.filter_by(",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "face_data_bp",
+        "kind": 5,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "face_data_bp = Blueprint('face_data', __name__)\ndef get_current_user():\n    \"\"\"Helper function to get current authenticated user\"\"\"\n    user_id = int(get_jwt_identity())\n    return User.query.get(user_id)\ndef get_vector_db():\n    \"\"\"Get vector database service\"\"\"\n    if hasattr(current_app, 'vector_db') and current_app.vector_db:\n        return current_app.vector_db\n    return None",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "VectorDBInterface",
+        "kind": 6,
+        "importPath": "Backend.services.vector_db",
+        "description": "Backend.services.vector_db",
+        "peekOfCode": "class VectorDBInterface(ABC):\n    \"\"\"Abstract interface for vector database operations\"\"\"\n    @abstractmethod\n    def add_encoding(self, user_id: int, encoding: np.ndarray, metadata: Dict = None) -> str:\n        \"\"\"Add face encoding to vector database\"\"\"\n        pass\n    @abstractmethod\n    def search_similar(self, encoding: np.ndarray, top_k: int = 10, threshold: float = 0.6) -> List[Dict]:\n        \"\"\"Search for similar face encodings\"\"\"\n        pass",
+        "detail": "Backend.services.vector_db",
+        "documentation": {}
+    },
+    {
+        "label": "ChromaVectorDB",
+        "kind": 6,
+        "importPath": "Backend.services.vector_db",
+        "description": "Backend.services.vector_db",
+        "peekOfCode": "class ChromaVectorDB(VectorDBInterface):\n    \"\"\"ChromaDB implementation for vector storage\"\"\"\n    def __init__(self, persist_directory: str = \"./vector_db/chroma\"):\n        try:\n            import chromadb\n            from chromadb.config import Settings\n            self.persist_directory = persist_directory\n            os.makedirs(persist_directory, exist_ok=True)\n            # Initialize ChromaDB client\n            self.client = chromadb.PersistentClient(",
+        "detail": "Backend.services.vector_db",
+        "documentation": {}
+    },
+    {
+        "label": "FAISSVectorDB",
+        "kind": 6,
+        "importPath": "Backend.services.vector_db",
+        "description": "Backend.services.vector_db",
+        "peekOfCode": "class FAISSVectorDB(VectorDBInterface):\n    \"\"\"FAISS implementation for vector storage\"\"\"\n    def __init__(self, index_path: str = \"./vector_db/faiss_index.pkl\"):\n        try:\n            import faiss\n            self.index_path = index_path\n            self.metadata_path = index_path.replace('.pkl', '_metadata.json')\n            # Create directory if it doesn't exist\n            os.makedirs(os.path.dirname(index_path), exist_ok=True)\n            # Load or create index",
+        "detail": "Backend.services.vector_db",
+        "documentation": {}
+    },
+    {
+        "label": "VectorDBService",
+        "kind": 6,
+        "importPath": "Backend.services.vector_db",
+        "description": "Backend.services.vector_db",
+        "peekOfCode": "class VectorDBService:\n    \"\"\"Main service class for vector database operations\"\"\"\n    def __init__(self, db_type: str = \"chroma\", **kwargs):\n        self.db_type = db_type.lower()\n        if self.db_type == \"chroma\":\n            persist_dir = kwargs.get('persist_directory', os.getenv('CHROMA_PERSIST_DIRECTORY', './vector_db/chroma'))\n            self.db = ChromaVectorDB(persist_directory=persist_dir)\n        elif self.db_type == \"faiss\":\n            index_path = kwargs.get('index_path', os.getenv('FAISS_INDEX_PATH', './vector_db/faiss_index.pkl'))\n            self.db = FAISSVectorDB(index_path=index_path)",
+        "detail": "Backend.services.vector_db",
+        "documentation": {}
+    },
+    {
+        "label": "get_vector_db_service",
+        "kind": 2,
+        "importPath": "Backend.services.vector_db",
+        "description": "Backend.services.vector_db",
+        "peekOfCode": "def get_vector_db_service() -> VectorDBService:\n    \"\"\"Get global vector database service instance\"\"\"\n    global _vector_db_service\n    if _vector_db_service is None:\n        db_type = os.getenv('VECTOR_DB_TYPE', 'chroma')\n        _vector_db_service = VectorDBService(db_type=db_type)\n    return _vector_db_service",
+        "detail": "Backend.services.vector_db",
+        "documentation": {}
+    },
+    {
+        "label": "_vector_db_service",
+        "kind": 5,
+        "importPath": "Backend.services.vector_db",
+        "description": "Backend.services.vector_db",
+        "peekOfCode": "_vector_db_service = None\ndef get_vector_db_service() -> VectorDBService:\n    \"\"\"Get global vector database service instance\"\"\"\n    global _vector_db_service\n    if _vector_db_service is None:\n        db_type = os.getenv('VECTOR_DB_TYPE', 'chroma')\n        _vector_db_service = VectorDBService(db_type=db_type)\n    return _vector_db_service",
+        "detail": "Backend.services.vector_db",
+        "documentation": {}
+    },
+    {
+        "label": "create_app",
+        "kind": 2,
+        "importPath": "Backend.app",
+        "description": "Backend.app",
+        "peekOfCode": "def create_app():\n    app = Flask(__name__)\n    # Configuration\n    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')\n    # Database Configuration\n    database_url = os.getenv('DATABASE_URL', 'sqlite:///attendly.db')\n    # PostgreSQL specific configurations\n    if database_url.startswith('postgresql://'):\n        app.config['SQLALCHEMY_DATABASE_URI'] = database_url\n        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {",
+        "detail": "Backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "check_dependencies",
+        "kind": 2,
+        "importPath": "Backend.app",
+        "description": "Backend.app",
+        "peekOfCode": "def check_dependencies():\n    \"\"\"Check if all required dependencies are installed\"\"\"\n    required_packages = [\n        ('flask', 'Flask'),\n        ('face_recognition', 'face_recognition'),\n        ('cv2', 'opencv-python'),\n        ('numpy', 'numpy'),\n        ('PIL', 'Pillow')\n    ]\n    missing_packages = []",
+        "detail": "Backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "db",
+        "kind": 5,
+        "importPath": "Backend.app",
+        "description": "Backend.app",
+        "peekOfCode": "db = SQLAlchemy()\njwt = JWTManager()\nmigrate = Migrate()\ndef create_app():\n    app = Flask(__name__)\n    # Configuration\n    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')\n    # Database Configuration\n    database_url = os.getenv('DATABASE_URL', 'sqlite:///attendly.db')\n    # PostgreSQL specific configurations",
+        "detail": "Backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "jwt",
+        "kind": 5,
+        "importPath": "Backend.app",
+        "description": "Backend.app",
+        "peekOfCode": "jwt = JWTManager()\nmigrate = Migrate()\ndef create_app():\n    app = Flask(__name__)\n    # Configuration\n    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')\n    # Database Configuration\n    database_url = os.getenv('DATABASE_URL', 'sqlite:///attendly.db')\n    # PostgreSQL specific configurations\n    if database_url.startswith('postgresql://'):",
+        "detail": "Backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "migrate",
+        "kind": 5,
+        "importPath": "Backend.app",
+        "description": "Backend.app",
+        "peekOfCode": "migrate = Migrate()\ndef create_app():\n    app = Flask(__name__)\n    # Configuration\n    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')\n    # Database Configuration\n    database_url = os.getenv('DATABASE_URL', 'sqlite:///attendly.db')\n    # PostgreSQL specific configurations\n    if database_url.startswith('postgresql://'):\n        app.config['SQLALCHEMY_DATABASE_URI'] = database_url",
+        "detail": "Backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "app",
+        "kind": 5,
+        "importPath": "Backend.run_server",
+        "description": "Backend.run_server",
+        "peekOfCode": "app = create_app()\n# Import models to ensure tables are created\nwith app.app_context():\n    # Import all models so they are registered with SQLAlchemy\n    from models.models import User, Class, FaceData, AttendanceSession, AttendanceRecord, ClassEnrollment\n    # Create database tables\n    db.create_all()\n    print('✅ Database tables created successfully')\nif __name__ == '__main__':\n    print('🚀 Starting Attendly Backend Server...')",
+        "detail": "Backend.run_server",
+        "documentation": {}
+    },
+    {
+        "label": "app",
+        "kind": 5,
+        "importPath": "Backend.test_app",
+        "description": "Backend.test_app",
+        "peekOfCode": "app = Flask(__name__)\napp.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'test-key')\napp.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'\napp.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False\ndb.init_app(app)\njwt.init_app(app)\nCORS(app)\nwith app.app_context():\n    # Import models within app context\n    from models.models import User, Class, FaceData, AttendanceSession, AttendanceRecord, ClassEnrollment",
+        "detail": "Backend.test_app",
+        "documentation": {}
+    },
+    {
+        "label": "app.config['SECRET_KEY']",
+        "kind": 5,
+        "importPath": "Backend.test_app",
+        "description": "Backend.test_app",
+        "peekOfCode": "app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'test-key')\napp.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'\napp.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False\ndb.init_app(app)\njwt.init_app(app)\nCORS(app)\nwith app.app_context():\n    # Import models within app context\n    from models.models import User, Class, FaceData, AttendanceSession, AttendanceRecord, ClassEnrollment\n    # Create tables",
+        "detail": "Backend.test_app",
+        "documentation": {}
+    },
+    {
+        "label": "app.config['SQLALCHEMY_DATABASE_URI']",
+        "kind": 5,
+        "importPath": "Backend.test_app",
+        "description": "Backend.test_app",
+        "peekOfCode": "app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'\napp.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False\ndb.init_app(app)\njwt.init_app(app)\nCORS(app)\nwith app.app_context():\n    # Import models within app context\n    from models.models import User, Class, FaceData, AttendanceSession, AttendanceRecord, ClassEnrollment\n    # Create tables\n    db.create_all()",
+        "detail": "Backend.test_app",
+        "documentation": {}
+    },
+    {
+        "label": "app.config['SQLALCHEMY_TRACK_MODIFICATIONS']",
+        "kind": 5,
+        "importPath": "Backend.test_app",
+        "description": "Backend.test_app",
+        "peekOfCode": "app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False\ndb.init_app(app)\njwt.init_app(app)\nCORS(app)\nwith app.app_context():\n    # Import models within app context\n    from models.models import User, Class, FaceData, AttendanceSession, AttendanceRecord, ClassEnrollment\n    # Create tables\n    db.create_all()\n    print('✅ Database tables created successfully')",
+        "detail": "Backend.test_app",
+        "documentation": {}
+    },
+    {
+        "label": "base_url",
+        "kind": 5,
+        "importPath": "Backend.test_connectivity",
+        "description": "Backend.test_connectivity",
+        "peekOfCode": "base_url = \"http://localhost:5000\"\nprint(\"🔍 Testing server connectivity...\")\ntry:\n    # Test health endpoint\n    response = requests.get(f\"{base_url}/health\", timeout=5)\n    print(f\"✅ Health check: {response.status_code} - {response.text[:100]}\")\nexcept Exception as e:\n    print(f\"❌ Health check failed: {e}\")\ntry:\n    # Test if server is running at all",
+        "detail": "Backend.test_connectivity",
+        "documentation": {}
+    },
+    {
+        "label": "test_imports",
+        "kind": 2,
+        "importPath": "Backend.test_setup",
+        "description": "Backend.test_setup",
+        "peekOfCode": "def test_imports():\n    \"\"\"Test if all required libraries can be imported\"\"\"\n    print(\"Testing imports...\")\n    try:\n        import flask\n        print(\"✓ Flask imported successfully\")\n    except ImportError as e:\n        print(f\"✗ Flask import failed: {e}\")\n        return False\n    try:",
+        "detail": "Backend.test_setup",
+        "documentation": {}
+    },
+    {
+        "label": "test_face_recognition",
+        "kind": 2,
+        "importPath": "Backend.test_setup",
+        "description": "Backend.test_setup",
+        "peekOfCode": "def test_face_recognition():\n    \"\"\"Test basic face recognition functionality\"\"\"\n    print(\"\\nTesting face recognition functionality...\")\n    try:\n        import face_recognition\n        import numpy as np\n        # Create a dummy image (RGB)\n        dummy_image = np.zeros((100, 100, 3), dtype=np.uint8)\n        # Try to find face locations (should return empty list for dummy image)\n        face_locations = face_recognition.face_locations(dummy_image)",
+        "detail": "Backend.test_setup",
+        "documentation": {}
+    },
+    {
+        "label": "test_database_models",
+        "kind": 2,
+        "importPath": "Backend.test_setup",
+        "description": "Backend.test_setup",
+        "peekOfCode": "def test_database_models():\n    \"\"\"Test if database models can be imported\"\"\"\n    print(\"\\nTesting database models...\")\n    try:\n        # Test if models can be imported (this will fail if Flask is not available)\n        # We'll skip this for now since it requires app context\n        print(\"✓ Database models test skipped (requires Flask app context)\")\n        return True\n    except Exception as e:\n        print(f\"✗ Database models test failed: {e}\")",
+        "detail": "Backend.test_setup",
+        "documentation": {}
+    },
+    {
+        "label": "test_image_processing",
+        "kind": 2,
+        "importPath": "Backend.test_setup",
+        "description": "Backend.test_setup",
+        "peekOfCode": "def test_image_processing():\n    \"\"\"Test image processing capabilities\"\"\"\n    print(\"\\nTesting image processing...\")\n    try:\n        import cv2\n        from PIL import Image\n        import numpy as np\n        import base64\n        import io\n        # Create a test image",
+        "detail": "Backend.test_setup",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "Backend.test_setup",
+        "description": "Backend.test_setup",
+        "peekOfCode": "def main():\n    \"\"\"Run all tests\"\"\"\n    print(\"=\" * 50)\n    print(\"ATTENDLY BACKEND SETUP VALIDATION\")\n    print(\"=\" * 50)\n    all_tests_passed = True\n    # Run import tests\n    if not test_imports():\n        all_tests_passed = False\n    # Run face recognition tests",
+        "detail": "Backend.test_setup",
+        "documentation": {}
+    },
+    {
+        "label": "create_test_image",
+        "kind": 2,
+        "importPath": "Backend.test_student_apis",
+        "description": "Backend.test_student_apis",
+        "peekOfCode": "def create_test_image():\n    \"\"\"Create a simple test image\"\"\"\n    image = Image.new('RGB', (100, 100), color='blue')\n    buffer = io.BytesIO()\n    image.save(buffer, format='JPEG')\n    image_bytes = buffer.getvalue()\n    return base64.b64encode(image_bytes).decode('utf-8')\ndef test_student_apis():\n    \"\"\"Test the new student facial APIs\"\"\"\n    print(\"🧪 Testing Student Facial Data APIs\\n\")",
+        "detail": "Backend.test_student_apis",
+        "documentation": {}
+    },
+    {
+        "label": "test_student_apis",
+        "kind": 2,
+        "importPath": "Backend.test_student_apis",
+        "description": "Backend.test_student_apis",
+        "peekOfCode": "def test_student_apis():\n    \"\"\"Test the new student facial APIs\"\"\"\n    print(\"🧪 Testing Student Facial Data APIs\\n\")\n    # First, we need to register and login as a student\n    print(\"1. Testing student registration...\")\n    # Register student\n    student_data = {\n        \"first_name\": \"Test\",\n        \"last_name\": \"Student\", \n        \"email\": \"student@test.com\",",
+        "detail": "Backend.test_student_apis",
+        "documentation": {}
+    },
+    {
+        "label": "BASE_URL",
+        "kind": 5,
+        "importPath": "Backend.test_student_apis",
+        "description": "Backend.test_student_apis",
+        "peekOfCode": "BASE_URL = \"http://localhost:5000\"\ndef create_test_image():\n    \"\"\"Create a simple test image\"\"\"\n    image = Image.new('RGB', (100, 100), color='blue')\n    buffer = io.BytesIO()\n    image.save(buffer, format='JPEG')\n    image_bytes = buffer.getvalue()\n    return base64.b64encode(image_bytes).decode('utf-8')\ndef test_student_apis():\n    \"\"\"Test the new student facial APIs\"\"\"",
+        "detail": "Backend.test_student_apis",
+        "documentation": {}
+    },
+    {
+        "label": "test_health_check",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def test_health_check():\n    \"\"\"Test if the server is running and healthy\"\"\"\n    try:\n        response = requests.get(f\"{BASE_URL}/health\")\n        if response.status_code == 200:\n            data = response.json()\n            print(\"✅ Health Check Passed\")\n            print(f\"   Status: {data['status']}\")\n            print(f\"   Database: {data['database']}\")\n            print(f\"   Vector DB: {data['vector_db']}\")",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "test_teacher_signup",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def test_teacher_signup():\n    \"\"\"Test teacher registration\"\"\"\n    try:\n        data = {\n            \"first_name\": \"Test\",\n            \"last_name\": \"Teacher\",\n            \"email\": \"teacher@test.com\",\n            \"password\": \"testpassword123\",\n            \"role\": \"teacher\"\n        }",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "test_student_signup",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def test_student_signup():\n    \"\"\"Test student registration\"\"\"\n    try:\n        data = {\n            \"first_name\": \"Test\",\n            \"last_name\": \"Student\",\n            \"email\": \"student@test.com\",\n            \"password\": \"testpassword123\",\n            \"role\": \"student\"\n        }",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "test_teacher_login",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def test_teacher_login():\n    \"\"\"Test teacher login and return JWT token\"\"\"\n    try:\n        data = {\n            \"email\": \"teacher@test.com\",\n            \"password\": \"testpassword123\"\n        }\n        response = requests.post(f\"{BASE_URL}/api/auth/login\", json=data)\n        if response.status_code == 200:\n            token = response.json()['access_token']",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "test_student_login",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def test_student_login():\n    \"\"\"Test student login and return JWT token\"\"\"\n    try:\n        data = {\n            \"email\": \"student@test.com\",\n            \"password\": \"testpassword123\"\n        }\n        response = requests.post(f\"{BASE_URL}/api/auth/login\", json=data)\n        if response.status_code == 200:\n            token = response.json()['access_token']",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "test_create_class",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def test_create_class(teacher_token):\n    \"\"\"Test class creation\"\"\"\n    try:\n        headers = {\"Authorization\": f\"Bearer {teacher_token}\"}\n        data = {\n            \"name\": \"Test Computer Science Class\",\n            \"description\": \"Test class for AI attendance system\"\n        }\n        response = requests.post(f\"{BASE_URL}/api/classes/create\", json=data, headers=headers)\n        if response.status_code == 201:",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "test_join_class",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def test_join_class(student_token, join_code):\n    \"\"\"Test student joining class\"\"\"\n    try:\n        headers = {\"Authorization\": f\"Bearer {student_token}\"}\n        data = {\"join_code\": join_code}\n        response = requests.post(f\"{BASE_URL}/api/classes/join\", json=data, headers=headers)\n        if response.status_code == 200:\n            print(\"✅ Class Join Passed\")\n            return True\n        elif response.status_code == 400 and \"already enrolled\" in response.json().get('error', ''):",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "create_test_image",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def create_test_image():\n    \"\"\"Create a simple test image\"\"\"\n    # Create a simple red square image\n    img = Image.new('RGB', (200, 200), color='red')\n    buffer = io.BytesIO()\n    img.save(buffer, format='JPEG')\n    img_data = buffer.getvalue()\n    return base64.b64encode(img_data).decode('utf-8')\ndef test_face_data_upload(student_token):\n    \"\"\"Test face data upload (with simple test image)\"\"\"",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "test_face_data_upload",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def test_face_data_upload(student_token):\n    \"\"\"Test face data upload (with simple test image)\"\"\"\n    try:\n        headers = {\"Authorization\": f\"Bearer {student_token}\"}\n        test_image = create_test_image()\n        # Test 1: Single image validation\n        print(\"   Testing image validation...\")\n        data = {\n            \"image\": f\"data:image/jpeg;base64,{test_image}\"\n        }",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "run_all_tests",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def run_all_tests():\n    \"\"\"Run all tests in sequence\"\"\"\n    print(\"🚀 Starting AI Attendance System Tests...\\n\")\n    # Test 1: Health Check\n    print(\"1. Testing Health Check...\")\n    if not test_health_check():\n        print(\"❌ Cannot proceed - server is not healthy\")\n        return\n    print()\n    # Test 2: User Registration",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "test_facial_recognition_apis",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def test_facial_recognition_apis(student_token):\n    \"\"\"Test new facial recognition specific APIs\"\"\"\n    try:\n        headers = {\"Authorization\": f\"Bearer {student_token}\"}\n        # Test 1: Check recognition readiness\n        print(\"   Testing recognition readiness check...\")\n        response = requests.get(f\"{BASE_URL}/api/face-data/recognition-ready\", headers=headers)\n        if response.status_code == 200:\n            readiness = response.json()\n            print(f\"   ✅ Recognition readiness: {readiness.get('recognition_ready', False)}\")",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "test_student_facial_apis",
+        "kind": 2,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "def test_student_facial_apis(student_token):\n    \"\"\"Test student-specific facial data APIs\"\"\"\n    try:\n        print(\"📸 Testing Student Facial Data APIs...\")\n        headers = {\"Authorization\": f\"Bearer {student_token}\"}\n        # Test 1: Get initial facial status\n        print(\"   Testing initial facial status...\")\n        response = requests.get(f\"{BASE_URL}/api/face-data/student/facial-status\", headers=headers)\n        if response.status_code == 200:\n            status = response.json()",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "BASE_URL",
+        "kind": 5,
+        "importPath": "Backend.test_system",
+        "description": "Backend.test_system",
+        "peekOfCode": "BASE_URL = \"http://localhost:5000\"\ndef test_health_check():\n    \"\"\"Test if the server is running and healthy\"\"\"\n    try:\n        response = requests.get(f\"{BASE_URL}/health\")\n        if response.status_code == 200:\n            data = response.json()\n            print(\"✅ Health Check Passed\")\n            print(f\"   Status: {data['status']}\")\n            print(f\"   Database: {data['database']}\")",
+        "detail": "Backend.test_system",
+        "documentation": {}
+    },
+    {
+        "label": "verify_api_registration",
+        "kind": 2,
+        "importPath": "Backend.verify_api",
+        "description": "Backend.verify_api",
+        "peekOfCode": "def verify_api_registration():\n    \"\"\"Verify the API is properly registered\"\"\"\n    print(\"=\" * 60)\n    print(\"🔍 VERIFYING STUDENT FACIAL DATA UPLOAD API\")\n    print(\"=\" * 60)\n    # Check if server is running\n    try:\n        response = requests.get(f\"{BASE_URL}/health\", timeout=5)\n        if response.status_code == 200:\n            print(\"✅ Backend server is running\")",
+        "detail": "Backend.verify_api",
+        "documentation": {}
+    },
+    {
+        "label": "BASE_URL",
+        "kind": 5,
+        "importPath": "Backend.verify_api",
+        "description": "Backend.verify_api",
+        "peekOfCode": "BASE_URL = \"http://localhost:5000\"\ndef verify_api_registration():\n    \"\"\"Verify the API is properly registered\"\"\"\n    print(\"=\" * 60)\n    print(\"🔍 VERIFYING STUDENT FACIAL DATA UPLOAD API\")\n    print(\"=\" * 60)\n    # Check if server is running\n    try:\n        response = requests.get(f\"{BASE_URL}/health\", timeout=5)\n        if response.status_code == 200:",
+        "detail": "Backend.verify_api",
+        "documentation": {}
+    },
+    {
+        "label": "handle_new_rx_page",
+        "kind": 2,
+        "importPath": "Frontend.attendly.ios.Flutter.ephemeral.flutter_lldb_helper",
+        "description": "Frontend.attendly.ios.Flutter.ephemeral.flutter_lldb_helper",
+        "peekOfCode": "def handle_new_rx_page(frame: lldb.SBFrame, bp_loc, extra_args, intern_dict):\n    \"\"\"Intercept NOTIFY_DEBUGGER_ABOUT_RX_PAGES and touch the pages.\"\"\"\n    base = frame.register[\"x0\"].GetValueAsAddress()\n    page_len = frame.register[\"x1\"].GetValueAsUnsigned()\n    # Note: NOTIFY_DEBUGGER_ABOUT_RX_PAGES will check contents of the\n    # first page to see if handled it correctly. This makes diagnosing\n    # misconfiguration (e.g. missing breakpoint) easier.\n    data = bytearray(page_len)\n    data[0:8] = b'IHELPED!'\n    error = lldb.SBError()",
+        "detail": "Frontend.attendly.ios.Flutter.ephemeral.flutter_lldb_helper",
+        "documentation": {}
+    }
+]
