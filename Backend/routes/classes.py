@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models.models import User, Class, ClassEnrollment, db
+from models.models import User, Class, ClassEnrollment, FaceData, db
 from sqlalchemy.exc import IntegrityError
 
 classes_bp = Blueprint('classes', __name__)
@@ -147,6 +147,21 @@ def join_class():
         if current_user.role != 'student':
             return jsonify({'error': 'Only students can join classes'}), 403
         
+        # Check if student has registered facial data
+        face_data = FaceData.query.filter_by(
+            user_id=current_user.id,
+            is_active=True
+        ).first()
+        
+        if not face_data:
+            print(f"❌ Join class failed: Student {current_user.email} has not registered facial data")
+            return jsonify({
+                'error': 'Facial data required',
+                'message': 'You must register your facial data before joining a class. Please register your face data from the Account page.'
+            }), 403
+        
+        print(f"✅ Student {current_user.email} has facial data registered")
+        
         data = request.get_json()
         
         if not data.get('join_code'):
@@ -161,6 +176,8 @@ def join_class():
         if not class_obj:
             return jsonify({'error': 'Invalid join code'}), 404
         
+        print(f"📝 Student {current_user.email} attempting to join class: {class_obj.name}")
+        
         # Check if student is already enrolled
         existing_enrollment = ClassEnrollment.query.filter_by(
             student_id=current_user.id,
@@ -174,6 +191,7 @@ def join_class():
                 # Reactivate enrollment
                 existing_enrollment.is_active = True
                 db.session.commit()
+                print(f"✅ Student {current_user.email} rejoined class: {class_obj.name}")
                 return jsonify({
                     'message': 'Successfully rejoined the class',
                     'class': class_obj.to_dict()
@@ -187,6 +205,8 @@ def join_class():
         
         db.session.add(enrollment)
         db.session.commit()
+        
+        print(f"✅ Student {current_user.email} successfully joined class: {class_obj.name}")
         
         return jsonify({
             'message': 'Successfully joined the class',
@@ -208,10 +228,14 @@ def leave_class(class_id):
         current_user = get_current_user()
         
         if not current_user:
+            print(f"❌ Leave class failed: User not found")
             return jsonify({'error': 'User not found'}), 404
         
         if current_user.role != 'student':
+            print(f"❌ Leave class failed: User {current_user.email} is not a student (role: {current_user.role})")
             return jsonify({'error': 'Only students can leave classes'}), 403
+        
+        print(f"📤 Student {current_user.email} attempting to leave class ID: {class_id}")
         
         # Find enrollment
         enrollment = ClassEnrollment.query.filter_by(
@@ -221,18 +245,81 @@ def leave_class(class_id):
         ).first()
         
         if not enrollment:
+            print(f"❌ Leave class failed: Student {current_user.email} not enrolled in class {class_id}")
             return jsonify({'error': 'Not enrolled in this class'}), 404
         
-        # Deactivate enrollment
+        # Get class details for logging
+        class_obj = Class.query.get(class_id)
+        class_name = class_obj.name if class_obj else f"Class {class_id}"
+        
+        # Deactivate enrollment (soft delete)
         enrollment.is_active = False
+        enrollment.updated_at = db.func.now()
         db.session.commit()
         
+        print(f"✅ Student {current_user.email} successfully left class: {class_name}")
+        
         return jsonify({
-            'message': 'Successfully left the class'
+            'message': f'Successfully left the class',
+            'class_id': class_id,
+            'class_name': class_name
         }), 200
         
     except Exception as e:
         db.session.rollback()
+        print(f"❌ Error leaving class {class_id}: {str(e)}")
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+@classes_bp.route('/<int:class_id>/enrollment-status', methods=['GET'])
+@jwt_required()
+def get_enrollment_status(class_id):
+    """Get enrollment status for a specific class (Student only)"""
+    try:
+        current_user = get_current_user()
+        
+        if not current_user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if current_user.role != 'student':
+            return jsonify({'error': 'Only students can check enrollment status'}), 403
+        
+        # Get class details
+        class_obj = Class.query.get(class_id)
+        if not class_obj:
+            return jsonify({'error': 'Class not found'}), 404
+        
+        # Check current active enrollment
+        active_enrollment = ClassEnrollment.query.filter_by(
+            student_id=current_user.id,
+            class_id=class_id,
+            is_active=True
+        ).first()
+        
+        # Get all enrollment history (including inactive)
+        all_enrollments = ClassEnrollment.query.filter_by(
+            student_id=current_user.id,
+            class_id=class_id
+        ).order_by(ClassEnrollment.created_at.desc()).all()
+        
+        enrollment_history = []
+        for enrollment in all_enrollments:
+            enrollment_history.append({
+                'id': enrollment.id,
+                'joined_at': enrollment.created_at.isoformat(),
+                'left_at': enrollment.updated_at.isoformat() if not enrollment.is_active else None,
+                'is_active': enrollment.is_active
+            })
+        
+        return jsonify({
+            'class_id': class_id,
+            'class_name': class_obj.name,
+            'is_enrolled': active_enrollment is not None,
+            'can_rejoin': True,  # Students can always rejoin if they have the code
+            'enrollment_history': enrollment_history,
+            'total_enrollments': len(all_enrollments)
+        }), 200
+        
+    except Exception as e:
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
 @classes_bp.route('/<int:class_id>/update', methods=['PUT'])

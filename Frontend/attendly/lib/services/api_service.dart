@@ -5,6 +5,7 @@ import '../models/class.dart';
 import '../models/attendance.dart';
 
 class ApiService {
+  // Use localhost when using adb reverse, or 10.0.2.2 for Android emulator without reverse
   static const String baseUrl = 'http://localhost:5000';
 
   String? _token;
@@ -28,16 +29,34 @@ class ApiService {
     final body = response.body;
     print('🔥 FLUTTER: _handleResponse - Status: ${response.statusCode}');
     print('🔥 FLUTTER: _handleResponse - Body: $body');
+    print(
+      '🔥 FLUTTER: _handleResponse - Content-Type: ${response.headers['content-type']}',
+    );
 
-    final data = jsonDecode(body);
-    print('🔥 FLUTTER: _handleResponse - Parsed data: $data');
+    // Check if response is HTML (404 page from server)
+    if (body.trim().startsWith('<!doctype html>') ||
+        body.trim().startsWith('<html')) {
+      print('🔥 FLUTTER: _handleResponse - Received HTML instead of JSON');
+      throw Exception(
+        'Server returned HTML instead of JSON. Status: ${response.statusCode}. This usually means the API endpoint was not found.',
+      );
+    }
+
+    Map<String, dynamic> data;
+    try {
+      data = jsonDecode(body);
+      print('🔥 FLUTTER: _handleResponse - Parsed data: $data');
+    } catch (e) {
+      print('🔥 FLUTTER: _handleResponse - JSON decode error: $e');
+      throw Exception('Invalid JSON response from server. Body: $body');
+    }
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       print('🔥 FLUTTER: _handleResponse - Success response');
       return data;
     } else {
       print('🔥 FLUTTER: _handleResponse - Error response');
-      throw Exception(data['error'] ?? 'Unknown error occurred');
+      throw Exception(data['error'] ?? data['msg'] ?? 'Unknown error occurred');
     }
   }
 
@@ -135,7 +154,7 @@ class ApiService {
   // Face data endpoints
   Future<Map<String, dynamic>> uploadFaceData(List<String> images) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/face-data/upload'),
+      Uri.parse('$baseUrl/api/face-data/upload'),
       headers: headers,
       body: jsonEncode({'images': images}),
     );
@@ -145,7 +164,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getFaceData() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/face-data/my-data'),
+      Uri.parse('$baseUrl/api/face-data/my-data'),
       headers: headers,
     );
 
@@ -308,14 +327,27 @@ class ApiService {
   }
 
   Future<List<AttendanceSession>> getClassSessions(int classId) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/attendance/sessions/$classId'),
-      headers: headers,
-    );
+    print('🔥 FLUTTER: Getting attendance sessions for class ID: $classId');
+    print('🔥 FLUTTER: URL: $baseUrl/api/attendance/sessions/$classId');
 
-    final data = _handleResponse(response);
-    final sessions = data['sessions'] as List;
-    return sessions.map((json) => AttendanceSession.fromJson(json)).toList();
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/attendance/sessions/$classId'),
+        headers: headers,
+      );
+
+      print(
+        '🔥 FLUTTER: GetClassSessions response status: ${response.statusCode}',
+      );
+      print('🔥 FLUTTER: GetClassSessions response body: ${response.body}');
+
+      final data = _handleResponse(response);
+      final sessions = data['sessions'] as List;
+      return sessions.map((json) => AttendanceSession.fromJson(json)).toList();
+    } catch (e) {
+      print('🔥 FLUTTER: Exception in getClassSessions: $e');
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> getSessionAttendance(int sessionId) async {
@@ -328,15 +360,29 @@ class ApiService {
   }
 
   // Student endpoints
-  Future<List<User>> getClassStudents(int classId) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/classes/$classId/students'),
-      headers: headers,
-    );
+  Future<List<Map<String, dynamic>>> getClassStudents(int classId) async {
+    print('🔥 FLUTTER: Getting students for class ID: $classId');
+    print('🔥 FLUTTER: URL: $baseUrl/api/classes/$classId');
 
-    final data = _handleResponse(response);
-    final students = data['students'] as List;
-    return students.map((json) => User.fromJson(json)).toList();
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/classes/$classId'),
+        headers: headers,
+      );
+
+      print(
+        '🔥 FLUTTER: GetClassStudents response status: ${response.statusCode}',
+      );
+      print('🔥 FLUTTER: GetClassStudents response body: ${response.body}');
+
+      final data = _handleResponse(response);
+      final classData = data['class'];
+      final students = classData['students'] as List? ?? [];
+      return students.cast<Map<String, dynamic>>();
+    } catch (e) {
+      print('🔥 FLUTTER: Exception in getClassStudents: $e');
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>> getStudentAttendanceStats(
@@ -367,5 +413,209 @@ class ApiService {
     final data = _handleResponse(response);
     final records = data['records'] as List;
     return records.map((json) => AttendanceRecord.fromJson(json)).toList();
+  }
+
+  // Face data endpoints
+  Future<Map<String, dynamic>> registerStudentFaceData({
+    required List<String> images,
+  }) async {
+    print('🔥 FLUTTER: Registering face data with ${images.length} images');
+    print('🔥 FLUTTER: Request URL: $baseUrl/api/face-data/register-student');
+    print(
+      '🔥 FLUTTER: Current token: ${_token != null ? "${_token!.substring(0, 10)}..." : "NULL"}',
+    );
+    print('🔥 FLUTTER: Headers: $headers');
+
+    // Double-check headers contain authorization
+    if (!headers.containsKey('Authorization')) {
+      print('🔥 FLUTTER: ERROR - No Authorization header found!');
+      throw Exception('No authentication token available');
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/face-data/register-student'),
+      headers: headers,
+      body: jsonEncode({'images': images}),
+    );
+
+    print(
+      '🔥 FLUTTER: Face data registration response status: ${response.statusCode}',
+    );
+    print('🔥 FLUTTER: Face data registration response body: ${response.body}');
+
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> getStudentFaceDataStatus() async {
+    print('🔥 FLUTTER: Calling getStudentFaceDataStatus()');
+    print('🔥 FLUTTER: URL: $baseUrl/api/face-data/student-status');
+    print('🔥 FLUTTER: Headers: $headers');
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/face-data/student-status'),
+      headers: headers,
+    );
+
+    print('🔥 FLUTTER: Status check response code: ${response.statusCode}');
+    print('🔥 FLUTTER: Status check response body: ${response.body}');
+
+    return _handleResponse(response);
+  }
+
+  // New progressive face data upload endpoints
+  Future<Map<String, dynamic>> uploadSingleFaceImage({
+    required String image,
+    required int sequenceNumber,
+  }) async {
+    print('🔥 FLUTTER: Uploading single image #$sequenceNumber');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/face-data/upload-single'),
+      headers: headers,
+      body: jsonEncode({'image': image, 'sequence_number': sequenceNumber}),
+    );
+
+    print('🔥 FLUTTER: Single image upload response: ${response.statusCode}');
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> uploadBatchWithProgress({
+    required List<String> images,
+  }) async {
+    print(
+      '🔥 FLUTTER: Uploading batch with progress - ${images.length} images',
+    );
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/face-data/upload-batch-with-progress'),
+      headers: headers,
+      body: jsonEncode({'images': images}),
+    );
+
+    print('🔥 FLUTTER: Batch upload response: ${response.statusCode}');
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> validateFaceImage({
+    required String image,
+  }) async {
+    print('🔥 FLUTTER: Validating face image');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/face-data/validate-image'),
+      headers: headers,
+      body: jsonEncode({'image': image}),
+    );
+
+    print('🔥 FLUTTER: Image validation response: ${response.statusCode}');
+    return _handleResponse(response);
+  }
+
+  // New facial recognition specific endpoints
+  Future<Map<String, dynamic>> uploadFaceForRecognition({
+    required List<String> images,
+  }) async {
+    print(
+      '🔥 FLUTTER: Uploading faces for recognition - ${images.length} images',
+    );
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/face-data/upload-for-recognition'),
+      headers: headers,
+      body: jsonEncode({'images': images}),
+    );
+
+    print('🔥 FLUTTER: Recognition upload response: ${response.statusCode}');
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> checkRecognitionReadiness() async {
+    print('🔥 FLUTTER: Checking recognition readiness');
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/face-data/recognition-ready'),
+      headers: headers,
+    );
+
+    print('🔥 FLUTTER: Recognition readiness response: ${response.statusCode}');
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> testFaceRecognition({
+    required String image,
+  }) async {
+    print('🔥 FLUTTER: Testing face recognition');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/face-data/test-recognition'),
+      headers: headers,
+      body: jsonEncode({'image': image}),
+    );
+
+    print('🔥 FLUTTER: Recognition test response: ${response.statusCode}');
+    return _handleResponse(response);
+  }
+
+  // Student-specific facial data APIs
+  Future<Map<String, dynamic>> studentUploadFacialData({
+    required List<String> images,
+    bool replaceExisting = false,
+  }) async {
+    print(
+      '🔥 FLUTTER: Student uploading facial data - ${images.length} images',
+    );
+    print('🔥 FLUTTER: Replace existing: $replaceExisting');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/face-data/student/upload-facial-data'),
+      headers: headers,
+      body: jsonEncode({'images': images, 'replace_existing': replaceExisting}),
+    );
+
+    print('🔥 FLUTTER: Student facial upload response: ${response.statusCode}');
+    print('🔥 FLUTTER: Student facial upload body: ${response.body}');
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> getStudentFacialStatus() async {
+    print('🔥 FLUTTER: Getting student facial status');
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/face-data/student/facial-status'),
+      headers: headers,
+    );
+
+    print('🔥 FLUTTER: Student facial status response: ${response.statusCode}');
+    print('🔥 FLUTTER: Student facial status body: ${response.body}');
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> deleteStudentFacialData() async {
+    print('🔥 FLUTTER: Deleting student facial data');
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/face-data/student/delete-facial-data'),
+      headers: headers,
+    );
+
+    print('🔥 FLUTTER: Delete facial data response: ${response.statusCode}');
+    print('🔥 FLUTTER: Delete facial data body: ${response.body}');
+    return _handleResponse(response);
+  }
+
+  // Class joining endpoints
+  Future<Map<String, dynamic>> leaveClass({required int classId}) async {
+    print('🔥 FLUTTER: Leaving class with ID: $classId');
+    print('🔥 FLUTTER: URL: $baseUrl/api/classes/$classId/leave');
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/classes/$classId/leave'),
+      headers: headers,
+    );
+
+    print('🔥 FLUTTER: Leave class response code: ${response.statusCode}');
+    print('🔥 FLUTTER: Leave class response body: ${response.body}');
+
+    return _handleResponse(response);
   }
 }

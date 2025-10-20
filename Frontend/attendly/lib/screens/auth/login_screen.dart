@@ -38,14 +38,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Navigate based on user role and face data status
+      // Navigate based on user role - always go to home page
       if (authProvider.userRole == 'student') {
-        final hasFaceData = await authProvider.hasFaceData();
-        if (hasFaceData) {
-          Navigator.pushReplacementNamed(context, Routes.studentHome);
-        } else {
-          Navigator.pushReplacementNamed(context, Routes.faceCapture);
-        }
+        Navigator.pushReplacementNamed(context, Routes.studentHome);
       } else {
         Navigator.pushReplacementNamed(context, Routes.teacherHome);
       }

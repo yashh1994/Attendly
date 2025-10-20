@@ -80,20 +80,23 @@ class _SplashScreenState extends State<SplashScreen>
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
+    print('🔥 SPLASH: Checking authentication...');
+    print('🔥 SPLASH: isAuthenticated: ${authProvider.isAuthenticated}');
+    print('🔥 SPLASH: userRole: ${authProvider.userRole}');
+    print('🔥 SPLASH: token: ${authProvider.token}');
+
     if (authProvider.isAuthenticated) {
       // Check if user has completed profile setup
       if (authProvider.userRole == 'student') {
-        // Check if student has uploaded face data
-        final hasFaceData = await authProvider.hasFaceData();
-        if (hasFaceData) {
-          Navigator.pushReplacementNamed(context, Routes.studentHome);
-        } else {
-          Navigator.pushReplacementNamed(context, Routes.faceCapture);
-        }
+        print('🔥 SPLASH: Navigating to student home');
+        // Student always goes to home page
+        Navigator.pushReplacementNamed(context, Routes.studentHome);
       } else {
+        print('🔥 SPLASH: Navigating to teacher home');
         Navigator.pushReplacementNamed(context, Routes.teacherHome);
       }
     } else {
+      print('🔥 SPLASH: Not authenticated, navigating to login');
       Navigator.pushReplacementNamed(context, Routes.login);
     }
   }

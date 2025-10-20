@@ -49,8 +49,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
 
     if (success) {
       if (_selectedRole == 'student') {
-        // Student needs to upload face data
-        Navigator.pushReplacementNamed(context, Routes.faceCapture);
+        // Student goes directly to home page
+        Navigator.pushReplacementNamed(context, Routes.studentHome);
       } else {
         // Teacher can go directly to home
         Navigator.pushReplacementNamed(context, Routes.teacherHome);
