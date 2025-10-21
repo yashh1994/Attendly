@@ -86,14 +86,27 @@ class _SplashScreenState extends State<SplashScreen>
     print('🔥 SPLASH: token: ${authProvider.token}');
 
     if (authProvider.isAuthenticated) {
-      // Check if user has completed profile setup
-      if (authProvider.userRole == 'student') {
-        print('🔥 SPLASH: Navigating to student home');
-        // Student always goes to home page
-        Navigator.pushReplacementNamed(context, Routes.studentHome);
+      print('🔥 SPLASH: Token found, verifying with server...');
+
+      // Verify token with server and update user data
+      final isValid = await authProvider.verifyAndUpdateUser();
+
+      if (!mounted) return;
+
+      if (isValid) {
+        print('🔥 SPLASH: Token verified successfully');
+
+        // Check if user has completed profile setup
+        if (authProvider.userRole == 'student') {
+          print('🔥 SPLASH: Navigating to student home');
+          Navigator.pushReplacementNamed(context, Routes.studentHome);
+        } else {
+          print('🔥 SPLASH: Navigating to teacher home');
+          Navigator.pushReplacementNamed(context, Routes.teacherHome);
+        }
       } else {
-        print('🔥 SPLASH: Navigating to teacher home');
-        Navigator.pushReplacementNamed(context, Routes.teacherHome);
+        print('🔥 SPLASH: Token verification failed, user logged out');
+        Navigator.pushReplacementNamed(context, Routes.login);
       }
     } else {
       print('🔥 SPLASH: Not authenticated, navigating to login');

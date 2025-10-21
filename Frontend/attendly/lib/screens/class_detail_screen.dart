@@ -9,6 +9,7 @@ import '../services/api_service.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/custom_widgets.dart';
 import '../utils/app_theme.dart';
+import 'teacher/take_attendance_screen.dart';
 
 class ClassDetailScreen extends StatefulWidget {
   final ClassModel classModel;
@@ -365,18 +366,37 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
     );
   }
 
-  void _takeAttendanceForDay(DateTime selectedDay) {
-    // Navigate to attendance capture screen
-    // TODO: Implement attendance capture screen navigation
-    print('🔥 Taking attendance for ${selectedDay.toString().split(' ')[0]}');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Taking attendance for ${selectedDay.toString().split(' ')[0]}',
+  void _takeAttendanceForDay(DateTime selectedDay) async {
+    print(
+      '🔥 FLUTTER: Navigating to Take Attendance screen for class ${widget.classModel.id}',
+    );
+
+    // Navigate to photo attendance screen
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TakeAttendanceScreen(
+          classId: widget.classModel.id,
+          className: widget.classModel.name,
         ),
-        backgroundColor: AppTheme.primaryColor,
       ),
     );
+
+    // Refresh attendance data if attendance was submitted
+    if (result == true) {
+      print('🔥 FLUTTER: Attendance submitted, refreshing data');
+      _loadAttendanceSessions();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Attendance recorded successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _copyJoinCode() async {

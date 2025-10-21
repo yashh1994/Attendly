@@ -28,6 +28,7 @@ class AuthProvider extends ChangeNotifier {
   User? get user => _user;
   String? get token => _token;
   String? get userRole => _user?.role;
+  ApiService get apiService => _apiService;
 
   // Load authentication data from storage
   void _loadAuthData() {
@@ -235,6 +236,40 @@ class AuthProvider extends ChangeNotifier {
       // Continue with local logout even if API call fails
     } finally {
       await clearAuthData();
+    }
+  }
+
+  // Verify token and update user data from server
+  Future<bool> verifyAndUpdateUser() async {
+    try {
+      print('🔥 FLUTTER: AuthProvider.verifyAndUpdateUser called');
+      print('🔥 FLUTTER: Current token: $_token');
+
+      if (_token == null) {
+        print('🔥 FLUTTER: No token available, skipping verification');
+        return false;
+      }
+
+      // Ensure token is set in API service
+      _apiService.setToken(_token);
+
+      print('🔥 FLUTTER: Calling ApiService.verifyToken...');
+      final response = await _apiService.verifyToken();
+      print('🔥 FLUTTER: Token verification response: $response');
+
+      // Update user data from server
+      _user = User.fromJson(response['user']);
+      await _saveAuthData();
+
+      print('🔥 FLUTTER: Token verified, user updated: ${_user?.email}');
+      return true;
+    } catch (e) {
+      print('🔥 FLUTTER: Token verification failed: $e');
+      print('🔥 FLUTTER: Clearing auth data due to verification failure');
+
+      // Token is invalid or user not found, clear auth data
+      await clearAuthData();
+      return false;
     }
   }
 

@@ -8,6 +8,7 @@ import '../../utils/app_theme.dart';
 import '../../models/class.dart';
 import '../class_detail_screen.dart';
 import '../account_screen.dart';
+import 'take_attendance_screen.dart';
 
 class TeacherHomeScreen extends StatefulWidget {
   const TeacherHomeScreen({super.key});
@@ -134,6 +135,72 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         );
       }
     }
+  }
+
+  void _navigateToTakeAttendance(ClassModel classModel) async {
+    print(
+      '🔥 FLUTTER: Navigating to Take Attendance for class: ${classModel.name} (ID: ${classModel.id})',
+    );
+
+    try {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TakeAttendanceScreen(
+            classId: classModel.id,
+            className: classModel.name,
+          ),
+        ),
+      );
+
+      print('🔥 FLUTTER: Returned from Take Attendance. Result: $result');
+
+      // Refresh classes list if attendance was submitted
+      if (result == true) {
+        _loadCreatedClasses();
+      }
+    } catch (e) {
+      print('🔥 FLUTTER: Error navigating to Take Attendance: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error opening attendance screen: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _shareClassCode(ClassModel classModel) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Share Class Code'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              classModel.joinCode,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Share this code with students to join ${classModel.name}',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showCreateClassDialog() {
@@ -477,7 +544,17 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                   ),
                 ],
                 onSelected: (value) {
-                  // TODO: Handle menu actions
+                  print(
+                    '🔥 FLUTTER: PopupMenu selected: $value for class: ${classModel.name}',
+                  );
+                  if (value == 'attendance') {
+                    print('🔥 FLUTTER: Calling _navigateToTakeAttendance');
+                    _navigateToTakeAttendance(classModel);
+                  } else if (value == 'share') {
+                    print('🔥 FLUTTER: Calling _shareClassCode');
+                    _shareClassCode(classModel);
+                  }
+                  // TODO: Handle other menu actions
                 },
               ),
             ],
