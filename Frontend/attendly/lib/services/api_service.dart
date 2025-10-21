@@ -142,6 +142,15 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> verifyToken() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/auth/verify-token'),
+      headers: headers,
+    );
+
+    return _handleResponse(response);
+  }
+
   Future<void> logout() async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/auth/logout'),
@@ -276,7 +285,7 @@ class ApiService {
     double tolerance = 0.6,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/attendance/recognize-faces'),
+      Uri.parse('$baseUrl/api/attendance/recognize-faces'),
       headers: headers,
       body: jsonEncode({
         'class_id': classId,
@@ -294,7 +303,7 @@ class ApiService {
     required DateTime sessionDate,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/attendance/create-session'),
+      Uri.parse('$baseUrl/api/attendance/create-session'),
       headers: headers,
       body: jsonEncode({
         'class_id': classId,
@@ -313,7 +322,7 @@ class ApiService {
     Map<String, double>? confidenceScores,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/attendance/mark-attendance'),
+      Uri.parse('$baseUrl/api/attendance/mark-attendance'),
       headers: headers,
       body: jsonEncode({
         'session_id': sessionId,
@@ -352,7 +361,7 @@ class ApiService {
 
   Future<Map<String, dynamic>> getSessionAttendance(int sessionId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/attendance/session/$sessionId/records'),
+      Uri.parse('$baseUrl/api/attendance/session/$sessionId/records'),
       headers: headers,
     );
 
@@ -405,7 +414,7 @@ class ApiService {
   }) async {
     final response = await http.get(
       Uri.parse(
-        '$baseUrl/attendance/student-records?class_id=$classId&period=$period',
+        '$baseUrl/api/attendance/student-records?class_id=$classId&period=$period',
       ),
       headers: headers,
     );
@@ -616,6 +625,81 @@ class ApiService {
     print('🔥 FLUTTER: Leave class response code: ${response.statusCode}');
     print('🔥 FLUTTER: Leave class response body: ${response.body}');
 
+    return _handleResponse(response);
+  }
+
+  // Classroom photo recognition endpoints
+  Future<Map<String, dynamic>> getClassStudentsWithFacialData(
+    int classId,
+  ) async {
+    print(
+      '🔥 FLUTTER: Getting class students with facial data for class: $classId',
+    );
+
+    final response = await http.get(
+      Uri.parse(
+        '$baseUrl/api/face-data/class/$classId/students-with-facial-data',
+      ),
+      headers: headers,
+    );
+
+    print('🔥 FLUTTER: Get students response: ${response.statusCode}');
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> recognizeStudentsFromPhoto({
+    required int classId,
+    required String imageBase64,
+    double recognitionThreshold = 0.6,
+    int maxFaces = 50,
+  }) async {
+    print('🔥 FLUTTER: Recognizing students from photo for class: $classId');
+
+    final requestBody = {
+      'class_id': classId,
+      'image': imageBase64,
+      'recognition_threshold': recognitionThreshold,
+      'max_faces': maxFaces,
+    };
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/face-data/recognize-from-photo'),
+      headers: headers,
+      body: jsonEncode(requestBody),
+    );
+
+    print('🔥 FLUTTER: Recognition response: ${response.statusCode}');
+    return _handleResponse(response);
+  }
+
+  // Mark individual student attendance
+  Future<Map<String, dynamic>> markStudentAttendance({
+    required int sessionId,
+    required int studentId,
+    required String status,
+    double? recognitionConfidence,
+    String? recognitionMethod,
+  }) async {
+    print(
+      '🔥 FLUTTER: Marking individual attendance - Session: $sessionId, Student: $studentId, Status: $status',
+    );
+
+    final requestBody = {
+      'session_id': sessionId,
+      'student_id': studentId,
+      'status': status,
+      if (recognitionConfidence != null)
+        'recognition_confidence': recognitionConfidence,
+      if (recognitionMethod != null) 'recognition_method': recognitionMethod,
+    };
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/attendance/mark'),
+      headers: headers,
+      body: jsonEncode(requestBody),
+    );
+
+    print('🔥 FLUTTER: Mark attendance response: ${response.statusCode}');
     return _handleResponse(response);
   }
 }

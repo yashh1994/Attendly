@@ -1231,6 +1231,305 @@ def check_recognition_readiness():
         current_app.logger.error(f"Error in check_recognition_readiness: {str(e)}")
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
+@face_data_bp.route('/class/<int:class_id>/students-with-facial-data', methods=['GET'])
+@jwt_required()
+def get_class_students_facial_data(class_id):
+    """
+    Get all students with facial data for a specific class (Teacher only)
+    
+    Returns list of students enrolled in the class who have uploaded facial data
+    """
+    try:
+        current_user = get_current_user()
+        
+        if not current_user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if current_user.role != 'teacher':
+            return jsonify({'error': 'Only teachers can access class facial data'}), 403
+        
+        # Verify teacher owns this class
+        from models.models import Class, ClassEnrollment
+        class_obj = Class.query.filter_by(id=class_id, teacher_id=current_user.id, is_active=True).first()
+        
+        if not class_obj:
+            return jsonify({'error': 'Class not found or you do not have access'}), 404
+        
+        # Get all enrolled students with facial data
+        students_with_data = db.session.query(
+            User.id,
+            User.first_name,
+            User.last_name,
+            User.email,
+            FaceData.vector_db_id,
+            FaceData.encoding_version,
+            FaceData.created_at.label('face_data_created_at')
+        ).join(
+            ClassEnrollment, User.id == ClassEnrollment.student_id
+        ).join(
+            FaceData, User.id == FaceData.user_id
+        ).filter(
+            ClassEnrollment.class_id == class_id,
+            ClassEnrollment.is_active == True,
+            FaceData.is_active == True,
+            User.is_active == True
+        ).all()
+        
+        # Get total enrolled students
+        total_enrolled = ClassEnrollment.query.filter_by(
+            class_id=class_id,
+            is_active=True
+        ).count()
+        
+        students_list = []
+        for student in students_with_data:
+            students_list.append({
+                'student_id': student.id,
+                'name': f"{student.first_name} {student.last_name}",
+                'email': student.email,
+                'vector_db_id': student.vector_db_id,
+                'encoding_version': student.encoding_version,
+                'face_data_registered_at': student.face_data_created_at.isoformat() if student.face_data_created_at else None
+            })
+        
+        return jsonify({
+            'class_id': class_id,
+            'class_name': class_obj.name,
+            'total_enrolled_students': total_enrolled,
+            'students_with_facial_data': len(students_list),
+            'coverage_percentage': (len(students_list) / total_enrolled * 100) if total_enrolled > 0 else 0,
+            'students': students_list
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error in get_class_students_facial_data: {str(e)}")
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+
+@face_data_bp.route('/recognize-from-photo', methods=['POST'])
+@jwt_required()
+def recognize_students_from_photo():
+    """
+    Extract all faces from classroom photo and recognize enrolled students
+    
+    Request body:
+    {
+        "image": "base64_encoded_image",
+        "class_id": 123,
+        "recognition_threshold": 0.6 (optional, default 0.6, lower = stricter)
+    }
+    
+    Response:
+    {
+        "success": true,
+        "class_id": 123,
+        "class_name": "Mathematics 101",
+        "total_faces_detected": 15,
+        "total_recognized": 12,
+        "total_enrolled_with_data": 20,
+        "recognized_students": [
+            {
+                "student_id": 5,
+                "name": "John Doe",
+                "email": "john@example.com",
+                "confidence": 0.85,
+                "face_number": 1
+            }
+        ],
+        "unrecognized_faces": 3
+    }
+    """
+    try:
+        current_user = get_current_user()
+        
+        if not current_user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if current_user.role != 'teacher':
+            return jsonify({'error': 'Only teachers can perform facial recognition'}), 403
+        
+        data = request.get_json()
+        
+        # Validate request
+        if not data or 'image' not in data:
+            return jsonify({'error': 'Image is required'}), 400
+        
+        if 'class_id' not in data:
+            return jsonify({'error': 'Class ID is required'}), 400
+        
+        class_id = data['class_id']
+        recognition_threshold = data.get('recognition_threshold', 0.6)
+        
+        # Validate threshold
+        if not (0.4 <= recognition_threshold <= 0.9):
+            return jsonify({'error': 'Recognition threshold must be between 0.4 and 0.9'}), 400
+        
+        # Verify teacher owns this class
+        from models.models import Class, ClassEnrollment
+        class_obj = Class.query.filter_by(id=class_id, teacher_id=current_user.id, is_active=True).first()
+        
+        if not class_obj:
+            return jsonify({'error': 'Class not found or you do not have access'}), 404
+        
+        # Decode image
+        try:
+            image_array = decode_base64_image(data['image'])
+            current_app.logger.info(f"Processing classroom photo for class {class_id} by teacher {current_user.id}")
+        except ValueError as e:
+            return jsonify({'error': f'Invalid image: {str(e)}'}), 400
+        
+        # Extract all faces from the image
+        current_app.logger.info(f"Extracting faces from classroom photo...")
+        face_locations = face_recognition.face_locations(image_array, model='hog')
+        
+        if not face_locations:
+            return jsonify({
+                'success': True,
+                'message': 'No faces detected in the image',
+                'class_id': class_id,
+                'class_name': class_obj.name,
+                'total_faces_detected': 0,
+                'total_recognized': 0,
+                'recognized_students': [],
+                'unrecognized_faces': 0
+            }), 200
+        
+        # Extract face encodings
+        face_model = os.getenv('FACE_ENCODING_MODEL', 'large')
+        face_encodings = face_recognition.face_encodings(image_array, face_locations, model=face_model)
+        
+        current_app.logger.info(f"Detected {len(face_encodings)} faces in classroom photo")
+        
+        # Get all enrolled students with facial data for this class
+        enrolled_students_data = db.session.query(
+            User.id,
+            User.first_name,
+            User.last_name,
+            User.email,
+            FaceData.vector_db_id
+        ).join(
+            ClassEnrollment, User.id == ClassEnrollment.student_id
+        ).join(
+            FaceData, User.id == FaceData.user_id
+        ).filter(
+            ClassEnrollment.class_id == class_id,
+            ClassEnrollment.is_active == True,
+            FaceData.is_active == True,
+            User.is_active == True
+        ).all()
+        
+        if not enrolled_students_data:
+            return jsonify({
+                'success': False,
+                'error': 'No students in this class have registered facial data',
+                'class_id': class_id,
+                'class_name': class_obj.name,
+                'total_faces_detected': len(face_encodings),
+                'recommendation': 'Ask students to register their facial data first'
+            }), 400
+        
+        current_app.logger.info(f"Found {len(enrolled_students_data)} enrolled students with facial data")
+        
+        # Get vector database
+        vector_db = get_vector_db()
+        
+        recognized_students = []
+        student_ids_recognized = set()
+        
+        # Match each detected face with enrolled students
+        for face_idx, face_encoding in enumerate(face_encodings):
+            best_match = None
+            best_similarity = 0
+            
+            if vector_db:
+                # Use vector database for efficient matching
+                try:
+                    # Search for similar faces
+                    matches = vector_db.search_similar(
+                        face_encoding,
+                        top_k=5,
+                        threshold=recognition_threshold
+                    )
+                    
+                    # Filter matches to only enrolled students in this class
+                    enrolled_ids = {s.id for s in enrolled_students_data}
+                    
+                    for match in matches:
+                        user_id = match.get('user_id')
+                        similarity = match.get('similarity', 0)
+                        
+                        if user_id in enrolled_ids and similarity > best_similarity:
+                            # Avoid duplicate recognition of same student
+                            if user_id not in student_ids_recognized:
+                                best_similarity = similarity
+                                student_info = next((s for s in enrolled_students_data if s.id == user_id), None)
+                                if student_info:
+                                    best_match = {
+                                        'student_id': student_info.id,
+                                        'name': f"{student_info.first_name} {student_info.last_name}",
+                                        'email': student_info.email,
+                                        'confidence': similarity,
+                                        'face_number': face_idx + 1,
+                                        'face_location': {
+                                            'top': face_locations[face_idx][0],
+                                            'right': face_locations[face_idx][1],
+                                            'bottom': face_locations[face_idx][2],
+                                            'left': face_locations[face_idx][3]
+                                        }
+                                    }
+                    
+                except Exception as e:
+                    current_app.logger.error(f"Vector DB search failed: {str(e)}")
+            
+            else:
+                # Fallback: Direct comparison with stored encodings
+                current_app.logger.warning("Vector DB not available, using direct comparison")
+                
+                for student_data in enrolled_students_data:
+                    try:
+                        # This would require storing encodings in FaceData model
+                        # For now, skip if vector DB is not available
+                        pass
+                    except Exception as e:
+                        continue
+            
+            # Add to recognized list if match found
+            if best_match and best_match['student_id'] not in student_ids_recognized:
+                recognized_students.append(best_match)
+                student_ids_recognized.add(best_match['student_id'])
+        
+        # Calculate statistics
+        total_faces_detected = len(face_encodings)
+        total_recognized = len(recognized_students)
+        unrecognized_faces = total_faces_detected - total_recognized
+        total_enrolled_with_data = len(enrolled_students_data)
+        
+        current_app.logger.info(
+            f"Recognition complete: {total_recognized}/{total_faces_detected} faces recognized, "
+            f"{total_enrolled_with_data} students enrolled with facial data"
+        )
+        
+        return jsonify({
+            'success': True,
+            'class_id': class_id,
+            'class_name': class_obj.name,
+            'teacher_id': current_user.id,
+            'total_faces_detected': total_faces_detected,
+            'total_recognized': total_recognized,
+            'total_enrolled_with_data': total_enrolled_with_data,
+            'recognition_threshold': recognition_threshold,
+            'recognized_students': recognized_students,
+            'unrecognized_faces': unrecognized_faces,
+            'recognition_rate': (total_recognized / total_faces_detected * 100) if total_faces_detected > 0 else 0,
+            'coverage_rate': (total_recognized / total_enrolled_with_data * 100) if total_enrolled_with_data > 0 else 0
+        }), 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error in recognize_students_from_photo: {str(e)}")
+        current_app.logger.exception("Full traceback:")
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+
 @face_data_bp.route('/test-recognition', methods=['POST'])
 @jwt_required()
 def test_face_recognition():

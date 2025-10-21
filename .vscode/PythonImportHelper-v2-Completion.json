@@ -718,6 +718,14 @@
         "documentation": {}
     },
     {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
         "label": "traceback",
         "kind": 6,
         "isExtraImport": true,
@@ -1240,6 +1248,24 @@
         "documentation": {}
     },
     {
+        "label": "get_class_students_facial_data",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def get_class_students_facial_data(class_id):\n    \"\"\"\n    Get all students with facial data for a specific class (Teacher only)\n    Returns list of students enrolled in the class who have uploaded facial data\n    \"\"\"\n    try:\n        current_user = get_current_user()\n        if not current_user:\n            return jsonify({'error': 'User not found'}), 404\n        if current_user.role != 'teacher':",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
+        "label": "recognize_students_from_photo",
+        "kind": 2,
+        "importPath": "Backend.routes.face_data",
+        "description": "Backend.routes.face_data",
+        "peekOfCode": "def recognize_students_from_photo():\n    \"\"\"\n    Extract all faces from classroom photo and recognize enrolled students\n    Request body:\n    {\n        \"image\": \"base64_encoded_image\",\n        \"class_id\": 123,\n        \"recognition_threshold\": 0.6 (optional, default 0.6, lower = stricter)\n    }\n    Response:",
+        "detail": "Backend.routes.face_data",
+        "documentation": {}
+    },
+    {
         "label": "test_face_recognition",
         "kind": 2,
         "importPath": "Backend.routes.face_data",
@@ -1426,6 +1452,87 @@
         "description": "Backend.test_app",
         "peekOfCode": "app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False\ndb.init_app(app)\njwt.init_app(app)\nCORS(app)\nwith app.app_context():\n    # Import models within app context\n    from models.models import User, Class, FaceData, AttendanceSession, AttendanceRecord, ClassEnrollment\n    # Create tables\n    db.create_all()\n    print('✅ Database tables created successfully')",
         "detail": "Backend.test_app",
+        "documentation": {}
+    },
+    {
+        "label": "login_teacher",
+        "kind": 2,
+        "importPath": "Backend.test_classroom_recognition",
+        "description": "Backend.test_classroom_recognition",
+        "peekOfCode": "def login_teacher():\n    \"\"\"Login as teacher and get JWT token\"\"\"\n    print(\"\\n\" + \"=\"*50)\n    print(\"STEP 1: Teacher Login\")\n    print(\"=\"*50)\n    response = requests.post(\n        f\"{BASE_URL}/api/auth/login\",\n        json={\n            \"email\": TEACHER_EMAIL,\n            \"password\": TEACHER_PASSWORD",
+        "detail": "Backend.test_classroom_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "get_class_students_with_facial_data",
+        "kind": 2,
+        "importPath": "Backend.test_classroom_recognition",
+        "description": "Backend.test_classroom_recognition",
+        "peekOfCode": "def get_class_students_with_facial_data(token, class_id):\n    \"\"\"Get all students in class with facial data\"\"\"\n    print(\"\\n\" + \"=\"*50)\n    print(\"STEP 2: Get Students with Facial Data\")\n    print(\"=\"*50)\n    headers = {\"Authorization\": f\"Bearer {token}\"}\n    response = requests.get(\n        f\"{BASE_URL}/api/face-data/class/{class_id}/students-with-facial-data\",\n        headers=headers\n    )",
+        "detail": "Backend.test_classroom_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "test_with_sample_image",
+        "kind": 2,
+        "importPath": "Backend.test_classroom_recognition",
+        "description": "Backend.test_classroom_recognition",
+        "peekOfCode": "def test_with_sample_image(token, class_id):\n    \"\"\"Test recognition with a sample base64 image\"\"\"\n    print(\"\\n\" + \"=\"*50)\n    print(\"STEP 3: Test Recognition with Sample Image\")\n    print(\"=\"*50)\n    # Create a small test image (1x1 pixel white image)\n    # In real use, this would be an actual classroom photo\n    sample_base64 = \"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlbaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q==\"\n    print(\"Note: Using a small test image. In production, use actual classroom photos.\")\n    print(\"Expected: This will likely detect no faces since it's a 1x1 pixel test image.\")",
+        "detail": "Backend.test_classroom_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "test_with_actual_photo",
+        "kind": 2,
+        "importPath": "Backend.test_classroom_recognition",
+        "description": "Backend.test_classroom_recognition",
+        "peekOfCode": "def test_with_actual_photo(token, class_id, photo_path):\n    \"\"\"Test recognition with an actual classroom photo file\"\"\"\n    print(\"\\n\" + \"=\"*50)\n    print(\"STEP 4: Test with Actual Photo (Optional)\")\n    print(\"=\"*50)\n    if not Path(photo_path).exists():\n        print(f\"⚠️  Photo not found: {photo_path}\")\n        print(\"Skipping actual photo test.\")\n        return None\n    print(f\"Loading photo: {photo_path}\")",
+        "detail": "Backend.test_classroom_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "Backend.test_classroom_recognition",
+        "description": "Backend.test_classroom_recognition",
+        "peekOfCode": "def main():\n    \"\"\"Main test function\"\"\"\n    print(\"\\n\" + \"=\"*50)\n    print(\"CLASSROOM PHOTO RECOGNITION API TEST\")\n    print(\"=\"*50)\n    # Login\n    token = login_teacher()\n    if not token:\n        print(\"\\n❌ Test failed: Could not login\")\n        return",
+        "detail": "Backend.test_classroom_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "BASE_URL",
+        "kind": 5,
+        "importPath": "Backend.test_classroom_recognition",
+        "description": "Backend.test_classroom_recognition",
+        "peekOfCode": "BASE_URL = \"http://localhost:5000\"\nTEACHER_EMAIL = \"yash@gmail.com\"  # Your teacher email\nTEACHER_PASSWORD = \"12345678\"  # Your teacher password\nCLASS_ID = 1  # Change to your class ID\ndef login_teacher():\n    \"\"\"Login as teacher and get JWT token\"\"\"\n    print(\"\\n\" + \"=\"*50)\n    print(\"STEP 1: Teacher Login\")\n    print(\"=\"*50)\n    response = requests.post(",
+        "detail": "Backend.test_classroom_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "TEACHER_EMAIL",
+        "kind": 5,
+        "importPath": "Backend.test_classroom_recognition",
+        "description": "Backend.test_classroom_recognition",
+        "peekOfCode": "TEACHER_EMAIL = \"yash@gmail.com\"  # Your teacher email\nTEACHER_PASSWORD = \"12345678\"  # Your teacher password\nCLASS_ID = 1  # Change to your class ID\ndef login_teacher():\n    \"\"\"Login as teacher and get JWT token\"\"\"\n    print(\"\\n\" + \"=\"*50)\n    print(\"STEP 1: Teacher Login\")\n    print(\"=\"*50)\n    response = requests.post(\n        f\"{BASE_URL}/api/auth/login\",",
+        "detail": "Backend.test_classroom_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "TEACHER_PASSWORD",
+        "kind": 5,
+        "importPath": "Backend.test_classroom_recognition",
+        "description": "Backend.test_classroom_recognition",
+        "peekOfCode": "TEACHER_PASSWORD = \"12345678\"  # Your teacher password\nCLASS_ID = 1  # Change to your class ID\ndef login_teacher():\n    \"\"\"Login as teacher and get JWT token\"\"\"\n    print(\"\\n\" + \"=\"*50)\n    print(\"STEP 1: Teacher Login\")\n    print(\"=\"*50)\n    response = requests.post(\n        f\"{BASE_URL}/api/auth/login\",\n        json={",
+        "detail": "Backend.test_classroom_recognition",
+        "documentation": {}
+    },
+    {
+        "label": "CLASS_ID",
+        "kind": 5,
+        "importPath": "Backend.test_classroom_recognition",
+        "description": "Backend.test_classroom_recognition",
+        "peekOfCode": "CLASS_ID = 1  # Change to your class ID\ndef login_teacher():\n    \"\"\"Login as teacher and get JWT token\"\"\"\n    print(\"\\n\" + \"=\"*50)\n    print(\"STEP 1: Teacher Login\")\n    print(\"=\"*50)\n    response = requests.post(\n        f\"{BASE_URL}/api/auth/login\",\n        json={\n            \"email\": TEACHER_EMAIL,",
+        "detail": "Backend.test_classroom_recognition",
         "documentation": {}
     },
     {
