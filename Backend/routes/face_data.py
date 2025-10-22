@@ -11,7 +11,35 @@ import io
 import os
 from datetime import datetime
 
+# Import ArcFace service for 512D embeddings
+try:
+    from services.arcface_service import (
+        extract_arcface_embedding,
+        extract_multiple_arcface_embeddings,
+        calculate_average_embedding,
+        compute_similarity,
+        detect_faces_batch,
+        get_model_info,
+        initialize_arcface
+    )
+    ARCFACE_AVAILABLE = True
+except ImportError as e:
+    ARCFACE_AVAILABLE = False
+    print(f"⚠️ ArcFace not available, using legacy face_recognition: {e}")
+
 face_data_bp = Blueprint('face_data', __name__)
+
+def get_encoding_version():
+    """Get current encoding version based on available model"""
+    if ARCFACE_AVAILABLE:
+        return 'v4.0_arcface_512d'
+    return 'v1.0_legacy_128d'
+
+def get_embedding_dimension(encoding):
+    """Get dimension of encoding (512 for ArcFace, 128 for legacy)"""
+    if encoding is not None:
+        return len(encoding)
+    return 0
 
 def get_current_user():
     """Helper function to get current authenticated user"""
@@ -49,8 +77,26 @@ def decode_base64_image(base64_string):
         raise ValueError(f"Invalid image data: {str(e)}")
 
 def extract_face_encoding(image_array, model='large'):
-    """Extract face encoding from image array"""
+    """
+    Extract face encoding from image array
+    Now uses ArcFace 512D embeddings for superior accuracy
+    Falls back to face_recognition 128D if ArcFace unavailable
+    """
     try:
+        # Try ArcFace first (512D embeddings)
+        if ARCFACE_AVAILABLE:
+            embedding = extract_arcface_embedding(image_array, return_largest=True)
+            
+            if embedding is not None:
+                current_app.logger.debug(f"✅ Extracted ArcFace 512D embedding, shape: {embedding.shape}")
+                return embedding
+            else:
+                current_app.logger.debug("No face detected with ArcFace")
+                return None
+        
+        # Fallback to legacy face_recognition (128D)
+        current_app.logger.warning("Using legacy face_recognition 128D (consider installing ArcFace)")
+        
         # Use model specified in environment or default
         face_model = os.getenv('FACE_ENCODING_MODEL', model)
         
@@ -153,11 +199,16 @@ def upload_face_data():
         ).first()
         
         # Prepare metadata for vector database
+        encoding_version = get_encoding_version()
+        embedding_dim = get_embedding_dimension(face_encoding)
+        
         metadata = {
             'user_id': current_user.id,
             'user_name': f"{current_user.first_name} {current_user.last_name}",
             'email': current_user.email,
-            'encoding_version': 'v1.0',
+            'encoding_version': encoding_version,
+            'embedding_dimension': embedding_dim,
+            'model_type': 'ArcFace' if ARCFACE_AVAILABLE else 'face_recognition',
             'upload_method': 'single_image'
         }
         
@@ -198,13 +249,18 @@ def upload_face_data():
             existing_face_data.vector_db_id = vector_db_id
             existing_face_data.encoding_metadata = metadata
             existing_face_data.image_path = image_path
-            existing_face_data.encoding_version = 'v1.0'
+            existing_face_data.encoding_version = encoding_version
             db.session.commit()
             
             return jsonify({
                 'message': 'Face data updated successfully',
                 'face_data': existing_face_data.to_dict(),
-                'vector_db_enabled': vector_db is not None
+                'vector_db_enabled': vector_db is not None,
+                'encoding_info': {
+                    'version': encoding_version,
+                    'dimension': embedding_dim,
+                    'model': 'ArcFace-512D' if ARCFACE_AVAILABLE else 'Legacy-128D'
+                }
             }), 200
         else:
             # Create new face data
@@ -213,7 +269,7 @@ def upload_face_data():
                 vector_db_id=vector_db_id,
                 encoding_metadata=metadata,
                 image_path=image_path,
-                encoding_version='v1.0'
+                encoding_version=encoding_version
             )
             
             db.session.add(face_data)
@@ -222,7 +278,12 @@ def upload_face_data():
             return jsonify({
                 'message': 'Face data uploaded successfully',
                 'face_data': face_data.to_dict(),
-                'vector_db_enabled': vector_db is not None
+                'vector_db_enabled': vector_db is not None,
+                'encoding_info': {
+                    'version': encoding_version,
+                    'dimension': embedding_dim,
+                    'model': 'ArcFace-512D' if ARCFACE_AVAILABLE else 'Legacy-128D'
+                }
             }), 201
         
     except Exception as e:
