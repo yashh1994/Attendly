@@ -9,6 +9,7 @@ import cv2
 from PIL import Image
 import io
 import os
+import logging
 from datetime import datetime
 
 # Import ArcFace service for 512D embeddings
@@ -22,10 +23,16 @@ try:
         get_model_info,
         initialize_arcface
     )
-    ARCFACE_AVAILABLE = True
-except ImportError as e:
+    # Verify ArcFace can actually initialize
+    _test_model = initialize_arcface()
+    ARCFACE_AVAILABLE = _test_model is not None
+    if ARCFACE_AVAILABLE:
+        print("✅ ArcFace 512D embeddings enabled")
+    else:
+        print("⚠️ ArcFace model failed to initialize, using legacy face_recognition 128D")
+except Exception as e:
     ARCFACE_AVAILABLE = False
-    print(f"⚠️ ArcFace not available, using legacy face_recognition: {e}")
+    print(f"⚠️ ArcFace not available, using legacy face_recognition 128D: {e}")
 
 face_data_bp = Blueprint('face_data', __name__)
 
@@ -53,7 +60,7 @@ def get_vector_db():
     return None
 
 def decode_base64_image(base64_string):
-    """Decode base64 image string to numpy array"""
+    """Decode base64 image string to numpy array with normalization"""
     try:
         # Remove data URL prefix if present
         if ',' in base64_string:
@@ -65,6 +72,10 @@ def decode_base64_image(base64_string):
         # Convert to PIL Image
         image = Image.open(io.BytesIO(image_data))
         
+        # Log original image info
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Decoded image: mode={image.mode}, size={image.size}")
+        
         # Convert to RGB if necessary
         if image.mode != 'RGB':
             image = image.convert('RGB')
@@ -72,9 +83,66 @@ def decode_base64_image(base64_string):
         # Convert to numpy array
         image_array = np.array(image)
         
+        # Verify image has content
+        if image_array.size == 0:
+            raise ValueError("Decoded image is empty")
+        
+        # Check image quality
+        if image_array.shape[0] < 100 or image_array.shape[1] < 100:
+            raise ValueError(f"Image too small: {image_array.shape}")
+        
+        # Normalize image to reduce camera quality differences
+        # This helps recognition work across front/back cameras
+        image_array = normalize_image_for_recognition(image_array)
+        
         return image_array
     except Exception as e:
         raise ValueError(f"Invalid image data: {str(e)}")
+
+def normalize_image_for_recognition(image_array):
+    """
+    Normalize image to reduce differences between cameras
+    Makes front camera (selfie) and back camera images more comparable
+    """
+    try:
+        # Convert to float for processing
+        image_float = image_array.astype(np.float32)
+        
+        # Normalize brightness and contrast
+        # This helps when front/back cameras have different exposure
+        mean_brightness = np.mean(image_float)
+        
+        # Adjust if too dark or too bright
+        if mean_brightness < 80:
+            # Image too dark - brighten
+            image_float = np.clip(image_float * 1.3 + 20, 0, 255)
+        elif mean_brightness > 180:
+            # Image too bright - darken
+            image_float = np.clip(image_float * 0.9 - 10, 0, 255)
+        
+        # Apply slight sharpening to compensate for different camera qualities
+        # This helps when comparing high-res back camera to lower-res front camera
+        kernel = np.array([[-0.5, -0.5, -0.5],
+                          [-0.5,  5.0, -0.5],
+                          [-0.5, -0.5, -0.5]])
+        
+        # Apply sharpening per channel
+        sharpened = np.zeros_like(image_float)
+        for i in range(3):  # RGB channels
+            sharpened[:, :, i] = cv2.filter2D(image_float[:, :, i], -1, kernel)
+        
+        # Blend original and sharpened (50% each)
+        image_float = 0.7 * image_float + 0.3 * sharpened
+        
+        # Convert back to uint8
+        image_normalized = np.clip(image_float, 0, 255).astype(np.uint8)
+        
+        return image_normalized
+        
+    except Exception as e:
+        # If normalization fails, return original
+        logging.getLogger(__name__).warning(f"Image normalization failed: {e}, using original")
+        return image_array
 
 def extract_face_encoding(image_array, model='large'):
     """
@@ -85,17 +153,19 @@ def extract_face_encoding(image_array, model='large'):
     try:
         # Try ArcFace first (512D embeddings)
         if ARCFACE_AVAILABLE:
-            embedding = extract_arcface_embedding(image_array, return_largest=True)
-            
-            if embedding is not None:
-                current_app.logger.debug(f"✅ Extracted ArcFace 512D embedding, shape: {embedding.shape}")
-                return embedding
-            else:
-                current_app.logger.debug("No face detected with ArcFace")
-                return None
+            try:
+                embedding = extract_arcface_embedding(image_array, return_largest=True)
+                
+                if embedding is not None:
+                    current_app.logger.debug(f"✅ Extracted ArcFace 512D embedding, shape: {embedding.shape}")
+                    return embedding
+                else:
+                    current_app.logger.debug("No face detected with ArcFace, trying legacy fallback")
+            except Exception as e:
+                current_app.logger.warning(f"ArcFace failed: {e}, falling back to legacy")
         
         # Fallback to legacy face_recognition (128D)
-        current_app.logger.warning("Using legacy face_recognition 128D (consider installing ArcFace)")
+        current_app.logger.debug("Using legacy face_recognition 128D")
         
         # Use model specified in environment or default
         face_model = os.getenv('FACE_ENCODING_MODEL', model)
@@ -104,11 +174,11 @@ def extract_face_encoding(image_array, model='large'):
         face_locations = face_recognition.face_locations(image_array, model='hog')
         
         if not face_locations:
-            current_app.logger.debug("No face detected in the image")
+            current_app.logger.debug("No face detected with legacy face_recognition")
             return None  # Return None instead of raising exception
         
         if len(face_locations) > 1:
-            current_app.logger.warning(f"Multiple faces detected ({len(face_locations)}), using the largest face")
+            current_app.logger.debug(f"Multiple faces detected ({len(face_locations)}), using the largest face")
             # Find the largest face (assuming it's the main subject)
             largest_face_idx = 0
             largest_area = 0
@@ -127,34 +197,14 @@ def extract_face_encoding(image_array, model='large'):
         )
         
         if not face_encodings:
-            current_app.logger.debug("Could not extract face encoding")
+            current_app.logger.debug("Could not extract face encoding from detected face")
             return None  # Return None instead of raising exception
         
+        current_app.logger.debug(f"✅ Extracted legacy 128D embedding")
         return face_encodings[0]
     except Exception as e:
         current_app.logger.error(f"Face encoding extraction failed: {str(e)}")
         return None  # Return None instead of raising exception
-
-def save_image_file(image_array, user_id):
-    """Save image file to uploads directory"""
-    try:
-        # Create uploads directory if it doesn't exist
-        uploads_dir = 'uploads/face_images'
-        os.makedirs(uploads_dir, exist_ok=True)
-        
-        # Generate filename with timestamp
-        from datetime import datetime
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"user_{user_id}_{timestamp}.jpg"
-        filepath = os.path.join(uploads_dir, filename)
-        
-        # Save image
-        image = Image.fromarray(image_array)
-        image.save(filepath, 'JPEG', quality=90)
-        
-        return filepath
-    except Exception as e:
-        return None
 
 @face_data_bp.route('/upload', methods=['POST'])
 @jwt_required()
@@ -186,10 +236,7 @@ def upload_face_data():
         except ValueError as e:
             return jsonify({'error': str(e)}), 400
         
-        # Save image file (optional)
-        image_path = save_image_file(image_array, current_user.id)
-        
-        # Get vector database service
+        # Get vector database service (no need to save image - only embeddings matter)
         vector_db = get_vector_db()
         
         # Check if user already has face data
@@ -248,7 +295,6 @@ def upload_face_data():
             # Update existing face data
             existing_face_data.vector_db_id = vector_db_id
             existing_face_data.encoding_metadata = metadata
-            existing_face_data.image_path = image_path
             existing_face_data.encoding_version = encoding_version
             db.session.commit()
             
@@ -268,7 +314,6 @@ def upload_face_data():
                 user_id=current_user.id,
                 vector_db_id=vector_db_id,
                 encoding_metadata=metadata,
-                image_path=image_path,
                 encoding_version=encoding_version
             )
             
@@ -324,10 +369,6 @@ def upload_multiple_face_data():
                 face_encoding = extract_face_encoding(image_array)
                 face_encodings.append(face_encoding)
                 successful_uploads += 1
-                
-                # Save first image as reference
-                if i == 0:
-                    image_path = save_image_file(image_array, current_user.id)
                 
             except ValueError as e:
                 # Skip this image and continue with others
@@ -396,7 +437,6 @@ def upload_multiple_face_data():
         if existing_face_data:
             existing_face_data.vector_db_id = vector_db_id
             existing_face_data.encoding_metadata = metadata
-            existing_face_data.image_path = image_path if 'image_path' in locals() else existing_face_data.image_path
             db.session.commit()
             
             return jsonify({
@@ -409,8 +449,7 @@ def upload_multiple_face_data():
             face_data = FaceData(
                 user_id=current_user.id,
                 vector_db_id=vector_db_id,
-                encoding_metadata=metadata,
-                image_path=image_path if 'image_path' in locals() else None
+                encoding_metadata=metadata
             )
             
             db.session.add(face_data)
@@ -503,14 +542,6 @@ def delete_face_data():
         
         # Deactivate face data instead of deleting
         face_data.is_active = False
-        
-        # Delete image file if exists
-        if face_data.image_path and os.path.exists(face_data.image_path):
-            try:
-                os.remove(face_data.image_path)
-            except:
-                pass  # Ignore file deletion errors
-        
         db.session.commit()
         
         return jsonify({
@@ -1505,8 +1536,8 @@ def recognize_students_from_photo():
             if vector_db:
                 # Use vector database for efficient matching
                 try:
-                    # Search for similar faces
-                    matches = vector_db.search_similar(
+                    # Search for similar faces using the correct wrapper method
+                    matches = vector_db.find_similar_faces(
                         face_encoding,
                         top_k=5,
                         threshold=recognition_threshold
