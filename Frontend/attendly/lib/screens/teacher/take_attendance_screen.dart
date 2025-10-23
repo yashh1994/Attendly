@@ -26,6 +26,8 @@ class _TakeAttendanceScreenState extends State<TakeAttendanceScreen> {
   bool _isCameraInitialized = false;
   bool _isProcessing = false;
   bool _hasProcessedPhoto = false;
+  String? _capturedPhotoPath; // Store captured photo for preview
+  bool _showingPreview = false; // Flag to show preview dialog
 
   // Student data
   List<Map<String, dynamic>> _allStudents = [];
@@ -53,14 +55,28 @@ class _TakeAttendanceScreenState extends State<TakeAttendanceScreen> {
       _cameras = await availableCameras();
       print('🔥 FLUTTER: Found ${_cameras?.length ?? 0} cameras');
       if (_cameras != null && _cameras!.isNotEmpty) {
+        // Use BACK camera for classroom attendance (not selfie)
+        final backCamera = _cameras!.firstWhere(
+          (camera) => camera.lensDirection == CameraLensDirection.back,
+          orElse: () => _cameras!.first,
+        );
+
+        print(
+          '🔥 FLUTTER: Using ${backCamera.lensDirection} camera for attendance',
+        );
+
         _cameraController = CameraController(
-          _cameras![0],
-          ResolutionPreset.high,
+          backCamera,
+          ResolutionPreset.high, // High quality for better face detection
           enableAudio: false,
         );
 
         await _cameraController!.initialize();
-        print('🔥 FLUTTER: Camera initialized successfully');
+
+        // Disable flash for attendance photos (avoid harsh lighting)
+        await _cameraController!.setFlashMode(FlashMode.off);
+
+        print('🔥 FLUTTER: Camera initialized successfully (flash disabled)');
 
         if (mounted) {
           setState(() {
@@ -122,16 +138,143 @@ class _TakeAttendanceScreenState extends State<TakeAttendanceScreen> {
       return;
     }
 
+    try {
+      // Ensure flash is OFF before capturing (natural lighting is better for recognition)
+      await _cameraController!.setFlashMode(FlashMode.off);
+
+      // Capture image
+      final XFile photo = await _cameraController!.takePicture();
+
+      // Store photo path and show preview dialog
+      setState(() {
+        _capturedPhotoPath = photo.path;
+        _showingPreview = true;
+      });
+
+      // Show preview dialog with submit/retake options
+      final shouldSubmit = await _showPhotoPreviewDialog(photo.path);
+
+      setState(() {
+        _showingPreview = false;
+      });
+
+      if (shouldSubmit == true) {
+        // User confirmed - process the photo
+        await _processPhoto(photo.path);
+      } else {
+        // User cancelled - delete the photo
+        await File(photo.path).delete();
+        setState(() {
+          _capturedPhotoPath = null;
+        });
+      }
+    } catch (e) {
+      print('Error capturing photo: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to capture photo: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      setState(() {
+        _showingPreview = false;
+        _capturedPhotoPath = null;
+      });
+    }
+  }
+
+  Future<bool?> _showPhotoPreviewDialog(String photoPath) async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Preview header
+              Container(
+                padding: const EdgeInsets.all(16),
+                color: Colors.blue,
+                child: Row(
+                  children: [
+                    const Icon(Icons.preview, color: Colors.white),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Review Photo',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Photo preview
+              Container(
+                constraints: const BoxConstraints(maxHeight: 400),
+                child: Image.file(File(photoPath), fit: BoxFit.contain),
+              ),
+
+              // Instructions
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Does the photo clearly show all students?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ),
+
+              // Action buttons
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.pop(context, false),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retake'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.orange,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.pop(context, true),
+                        icon: const Icon(Icons.check_circle),
+                        label: const Text('Submit'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _processPhoto(String photoPath) async {
     setState(() {
       _isProcessing = true;
     });
 
     try {
-      // Capture image
-      final XFile photo = await _cameraController!.takePicture();
-
       // Convert to base64
-      final bytes = await File(photo.path).readAsBytes();
+      final bytes = await File(photoPath).readAsBytes();
       final base64Image = 'data:image/jpeg;base64,${base64Encode(bytes)}';
 
       // Call recognition API
@@ -139,7 +282,8 @@ class _TakeAttendanceScreenState extends State<TakeAttendanceScreen> {
       final response = await authProvider.apiService.recognizeStudentsFromPhoto(
         classId: widget.classId,
         imageBase64: base64Image,
-        recognitionThreshold: 0.6,
+        recognitionThreshold:
+            0.55, // Slightly lower threshold for cross-camera recognition
       );
 
       if (response['success'] == true) {
@@ -178,7 +322,10 @@ class _TakeAttendanceScreenState extends State<TakeAttendanceScreen> {
       }
 
       // Delete temporary photo file
-      await File(photo.path).delete();
+      await File(photoPath).delete();
+      setState(() {
+        _capturedPhotoPath = null;
+      });
     } catch (e) {
       print('Error in recognition: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -349,16 +496,69 @@ class _TakeAttendanceScreenState extends State<TakeAttendanceScreen> {
       ),
       body: Column(
         children: [
-          // Camera Preview Section
-          Container(
-            height: 300,
-            width: double.infinity,
-            color: Colors.black,
-            child: _isCameraInitialized
-                ? CameraPreview(_cameraController!)
-                : const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  ),
+          // Camera Preview Section with natural aspect ratio
+          Expanded(
+            flex: 3, // Give more space to camera
+            child: Container(
+              width: double.infinity,
+              color: Colors.black,
+              child: _isCameraInitialized && _cameraController != null
+                  ? Stack(
+                      children: [
+                        Center(
+                          child: AspectRatio(
+                            aspectRatio: _cameraController!.value.aspectRatio,
+                            child: CameraPreview(_cameraController!),
+                          ),
+                        ),
+
+                        // Camera Type Indicator (Top-left)
+                        Positioned(
+                          top: 16,
+                          left: 16,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.camera_rear,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Back Camera',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+            ),
           ),
 
           // Camera Controls
@@ -477,6 +677,7 @@ class _TakeAttendanceScreenState extends State<TakeAttendanceScreen> {
 
           // Student List
           Expanded(
+            flex: 2, // Balance with camera preview
             child: _allStudents.isEmpty
                 ? const Center(
                     child: Column(

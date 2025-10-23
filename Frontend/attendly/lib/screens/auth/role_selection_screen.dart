@@ -49,11 +49,19 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
 
     if (success) {
       if (_selectedRole == 'student') {
-        // Student goes directly to home page
-        Navigator.pushReplacementNamed(context, Routes.studentHome);
+        // Student goes to home page - clear entire navigation stack
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          Routes.studentHome,
+          (route) => false, // Remove all previous routes
+        );
       } else {
-        // Teacher can go directly to home
-        Navigator.pushReplacementNamed(context, Routes.teacherHome);
+        // Teacher goes to home page - clear entire navigation stack
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          Routes.teacherHome,
+          (route) => false, // Remove all previous routes
+        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

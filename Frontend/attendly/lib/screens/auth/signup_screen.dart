@@ -46,8 +46,8 @@ class _SignupScreenState extends State<SignupScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Navigate to role selection
-      Navigator.pushNamed(context, Routes.roleSelection);
+      // Navigate to role selection, replacing the signup screen
+      Navigator.pushReplacementNamed(context, Routes.roleSelection);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

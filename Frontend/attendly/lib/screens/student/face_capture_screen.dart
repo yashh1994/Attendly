@@ -120,19 +120,28 @@ class _FaceCaptureScreenState extends State<FaceCaptureScreen>
       _cameras = await availableCameras();
 
       if (_cameras != null && _cameras!.isNotEmpty) {
-        // Use front camera if available
+        // Use FRONT camera for selfie registration
         final frontCamera = _cameras!.firstWhere(
           (camera) => camera.lensDirection == CameraLensDirection.front,
           orElse: () => _cameras!.first,
         );
 
+        print(
+          '🔥 FLUTTER: Using ${frontCamera.lensDirection} camera for face registration',
+        );
+
         _cameraController = CameraController(
           frontCamera,
-          ResolutionPreset.medium,
+          ResolutionPreset.high, // High quality for better face recognition
           enableAudio: false,
+          imageFormatGroup: ImageFormatGroup.jpeg, // Ensure JPEG format
         );
 
         await _cameraController!.initialize();
+
+        print(
+          '🔥 FLUTTER: Camera initialized - Resolution: ${_cameraController!.value.previewSize}',
+        );
 
         if (mounted) {
           setState(() {
@@ -378,6 +387,41 @@ class _FaceCaptureScreenState extends State<FaceCaptureScreen>
                                   child: AspectRatio(
                                     aspectRatio: 3 / 4,
                                     child: CameraPreview(_cameraController!),
+                                  ),
+                                ),
+                              ),
+
+                              // Camera Type Indicator (Top-right)
+                              Positioned(
+                                top: 30,
+                                right: 30,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.9),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.camera_front,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Selfie Camera',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

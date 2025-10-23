@@ -38,11 +38,19 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      // Navigate based on user role - always go to home page
+      // Navigate based on user role - clear entire navigation stack
       if (authProvider.userRole == 'student') {
-        Navigator.pushReplacementNamed(context, Routes.studentHome);
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          Routes.studentHome,
+          (route) => false, // Remove all previous routes
+        );
       } else {
-        Navigator.pushReplacementNamed(context, Routes.teacherHome);
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          Routes.teacherHome,
+          (route) => false, // Remove all previous routes
+        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
