@@ -144,7 +144,7 @@ class FaceData(db.Model):
     # Store vector DB reference instead of actual encoding
     vector_db_id = db.Column(db.String(100), nullable=True, index=True)
     encoding_metadata = db.Column(db.JSON, nullable=True)  # Store metadata as JSON
-    image_path = db.Column(db.String(255), nullable=True)
+    image_path = db.Column(db.String(255), nullable=True)  # DEPRECATED: Not used, embeddings stored in vector DB only
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True, index=True)
