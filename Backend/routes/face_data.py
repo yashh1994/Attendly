@@ -1470,11 +1470,49 @@ def recognize_students_from_photo():
         except ValueError as e:
             return jsonify({'error': f'Invalid image: {str(e)}'}), 400
         
-        # Extract all faces from the image
-        current_app.logger.info(f"Extracting faces from classroom photo...")
-        face_locations = face_recognition.face_locations(image_array, model='hog')
+        # Extract all faces from the image using ArcFace
+        current_app.logger.info(f"Extracting faces from classroom photo using ArcFace 512D...")
         
-        if not face_locations:
+        # Use ArcFace for face detection and encoding extraction
+        face_encodings = []
+        face_locations = []
+        
+        if ARCFACE_AVAILABLE:
+            try:
+                # Extract multiple face embeddings using ArcFace
+                from services.arcface_service import extract_multiple_arcface_embeddings, get_arcface_model
+                import cv2
+                
+                model = get_arcface_model()
+                if model:
+                    # Convert RGB to BGR for InsightFace
+                    image_bgr = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+                    
+                    # Detect all faces
+                    faces = model.get(image_bgr)
+                    
+                    if faces and len(faces) > 0:
+                        for face in faces:
+                            face_encodings.append(face.normed_embedding)
+                            # Store bbox as (top, right, bottom, left) for compatibility
+                            bbox = face.bbox.astype(int)
+                            face_locations.append((bbox[1], bbox[2], bbox[3], bbox[0]))
+                        
+                        current_app.logger.info(f"✅ Extracted {len(face_encodings)} ArcFace 512D embeddings from classroom photo")
+                    else:
+                        current_app.logger.info("No faces detected with ArcFace")
+            except Exception as e:
+                current_app.logger.error(f"ArcFace face detection failed: {e}, falling back to legacy")
+        
+        # Fallback to legacy face_recognition if ArcFace failed or unavailable
+        if not face_encodings:
+            current_app.logger.warning("⚠️ Using legacy face_recognition 128D (not compatible with 512D Vector DB!)")
+            face_locations = face_recognition.face_locations(image_array, model='hog')
+            if face_locations:
+                face_model = os.getenv('FACE_ENCODING_MODEL', 'large')
+                face_encodings = face_recognition.face_encodings(image_array, face_locations, model=face_model)
+        
+        if not face_encodings:
             return jsonify({
                 'success': True,
                 'message': 'No faces detected in the image',
@@ -1486,11 +1524,7 @@ def recognize_students_from_photo():
                 'unrecognized_faces': 0
             }), 200
         
-        # Extract face encodings
-        face_model = os.getenv('FACE_ENCODING_MODEL', 'large')
-        face_encodings = face_recognition.face_encodings(image_array, face_locations, model=face_model)
-        
-        current_app.logger.info(f"Detected {len(face_encodings)} faces in classroom photo")
+        current_app.logger.info(f"Detected {len(face_encodings)} faces in classroom photo (Dimension: {len(face_encodings[0]) if face_encodings else 0}D)")
         
         # Get all enrolled students with facial data for this class
         enrolled_students_data = db.session.query(
