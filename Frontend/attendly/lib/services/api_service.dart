@@ -686,15 +686,15 @@ class ApiService {
 
     final requestBody = {
       'session_id': sessionId,
-      'student_id': studentId,
+      'student_ids': [studentId], // Backend expects array
       'status': status,
       if (recognitionConfidence != null)
-        'recognition_confidence': recognitionConfidence,
+        'confidence_scores': {studentId.toString(): recognitionConfidence},
       if (recognitionMethod != null) 'recognition_method': recognitionMethod,
     };
 
     final response = await http.post(
-      Uri.parse('$baseUrl/api/attendance/mark'),
+      Uri.parse('$baseUrl/api/attendance/mark-attendance'),
       headers: headers,
       body: jsonEncode(requestBody),
     );

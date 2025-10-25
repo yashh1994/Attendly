@@ -59,10 +59,15 @@ class ChromaVectorDB(VectorDBInterface):
                 )
             )
             
-            # Get or create collection for face encodings
+            # Get or create collection for face encodings with 512D ArcFace
             self.collection = self.client.get_or_create_collection(
                 name="face_encodings",
-                metadata={"description": "Student face encodings for attendance"}
+                metadata={
+                    "description": "Student face encodings for attendance using ArcFace 512D",
+                    "encoding_dimension": 512,
+                    "model_type": "arcface_buffalo_l",
+                    "distance_function": "cosine"
+                }
             )
             
         except ImportError:
@@ -426,21 +431,26 @@ class VectorDBService:
         try:
             if self.db_type == "chroma":
                 count = self.db.collection.count()
+                # Get dimension from collection metadata
+                metadata = self.db.collection.metadata
+                dimension = metadata.get('encoding_dimension', 512)  # Default to 512 for ArcFace
             elif self.db_type == "faiss":
                 count = self.db.index.ntotal if self.db.index else 0
+                dimension = 512  # ArcFace dimension
             else:
                 count = 0
+                dimension = 512
             
             return {
                 'db_type': self.db_type,
                 'total_encodings': count,
-                'encoding_dimension': 128
+                'encoding_dimension': dimension
             }
         except Exception as e:
             return {
                 'db_type': self.db_type,
                 'total_encodings': 0,
-                'encoding_dimension': 128,
+                'encoding_dimension': 512,
                 'error': str(e)
             }
 
