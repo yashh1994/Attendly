@@ -1,0 +1,12 @@
+{
+    "name": "Yash",
+    "student_id": "S001",
+    "angles": [
+        "front",
+        "left",
+        "right",
+        "up",
+        "down"
+    ],
+    "embedding_file": "Yash_embeddings.npy"
+}
