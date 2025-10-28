@@ -466,6 +466,213 @@ def upload_multiple_face_data():
         db.session.rollback()
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
+@face_data_bp.route('/upload-orientations', methods=['POST'])
+@jwt_required()
+def upload_face_data_with_orientations():
+    """
+    Upload face images labeled by head orientation for higher-quality enrollment.
+    Expected payload:
+    {
+      "images": [
+        { "image": "base64...", "orientation": "front" },
+        { "image": "base64...", "orientation": "left" },
+        { "image": "base64...", "orientation": "right" },
+        { "image": "base64...", "orientation": "up" },
+        { "image": "base64...", "orientation": "down" }
+      ]
+    }
+    Notes:
+    - At least 3 orientations are required (front + any two of left/right/up/down).
+    - If multiple images are provided for the same orientation, they will be averaged.
+    - The averaged global embedding (across orientations) is stored in the vector DB.
+    - Per-orientation averaged embeddings are stored in FaceData.encoding_metadata.
+    """
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if current_user.role != 'student':
+            return jsonify({'error': 'Only students can upload face data'}), 403
+
+        data = request.get_json()
+        if not data or 'images' not in data or not isinstance(data['images'], list):
+            return jsonify({'error': 'images array is required'}), 400
+
+        images = data['images']
+        if len(images) == 0:
+            return jsonify({'error': 'Provide at least 1 image'}), 400
+
+        allowed_orientations = ["front", "left", "right", "up", "down"]
+        orientation_buckets = {o: [] for o in allowed_orientations}
+        processed = []
+        errors = []
+
+        # Decode and extract embeddings per item
+        for i, item in enumerate(images):
+            idx = i + 1
+            if not isinstance(item, dict) or 'image' not in item or 'orientation' not in item:
+                errors.append({
+                    'image_number': idx,
+                    'error': 'Missing image or orientation field'
+                })
+                continue
+
+            orientation = str(item['orientation']).strip().lower()
+            if orientation not in allowed_orientations:
+                errors.append({
+                    'image_number': idx,
+                    'error': f'Invalid orientation: {orientation}',
+                    'allowed': allowed_orientations
+                })
+                continue
+
+            try:
+                img_array = decode_base64_image(item['image'])
+                emb = extract_face_encoding(img_array)
+                if emb is None:
+                    errors.append({
+                        'image_number': idx,
+                        'orientation': orientation,
+                        'error': 'No face detected'
+                    })
+                    continue
+
+                orientation_buckets[orientation].append(emb)
+                processed.append({
+                    'image_number': idx,
+                    'orientation': orientation,
+                    'embedding_dim': len(emb)
+                })
+
+            except ValueError as e:
+                errors.append({
+                    'image_number': idx,
+                    'orientation': orientation,
+                    'error': f'Invalid image: {str(e)}'
+                })
+            except Exception as e:
+                errors.append({
+                    'image_number': idx,
+                    'orientation': orientation,
+                    'error': f'Unexpected error: {str(e)}'
+                })
+
+        # Build per-orientation averaged embeddings
+        per_orientation_avg = {}
+        captured_orientations = []
+        for o in allowed_orientations:
+            if orientation_buckets[o]:
+                avg = np.mean(orientation_buckets[o], axis=0)
+                # Normalize to unit vector
+                norm = np.linalg.norm(avg)
+                if norm > 0:
+                    avg = avg / norm
+                per_orientation_avg[o] = avg
+                captured_orientations.append(o)
+
+        # Validate minimum coverage: front + any two others
+        required = {'front'}
+        if not required.issubset(set(captured_orientations)):
+            return jsonify({
+                'success': False,
+                'message': "Please include at least a 'front' image",
+                'captured_orientations': captured_orientations,
+                'errors': errors[:5]
+            }), 400
+
+        if len(captured_orientations) < 3:
+            return jsonify({
+                'success': False,
+                'message': 'Please include at least 3 orientations (front + any two of left/right/up/down)',
+                'captured_orientations': captured_orientations,
+                'errors': errors[:5]
+            }), 400
+
+        # Global averaged embedding across orientations
+        avg_list = list(per_orientation_avg.values())
+        global_avg = np.mean(avg_list, axis=0)
+        global_norm = np.linalg.norm(global_avg)
+        if global_norm > 0:
+            global_avg = global_avg / global_norm
+
+        embedding_dim = len(global_avg)
+
+        # Store to vector DB (single global embedding) and FaceData metadata
+        vector_db = get_vector_db()
+        existing_face_data = FaceData.query.filter_by(
+            user_id=current_user.id,
+            is_active=True
+        ).first()
+
+        # Prepare metadata with per-orientation averages (as lists for JSON)
+        orientation_meta = {o: per_orientation_avg[o].tolist() for o in per_orientation_avg}
+        encoding_version = get_encoding_version()
+        metadata = {
+            'user_id': current_user.id,
+            'user_name': f"{current_user.first_name} {current_user.last_name}",
+            'email': current_user.email,
+            'encoding_version': encoding_version,
+            'embedding_dimension': embedding_dim,
+            'model_type': 'ArcFace' if ARCFACE_AVAILABLE else 'face_recognition',
+            'upload_method': 'orientation_labeled',
+            'captured_orientations': captured_orientations,
+            'per_orientation_embeddings': orientation_meta,
+            'created_at': str(datetime.utcnow())
+        }
+
+        vector_db_id = None
+        if vector_db:
+            try:
+                if existing_face_data and existing_face_data.vector_db_id:
+                    success = vector_db.update_face_encoding(current_user.id, global_avg, metadata)
+                    vector_db_id = existing_face_data.vector_db_id
+                    if not success:
+                        vector_db_id = vector_db.add_face_encoding(current_user.id, global_avg, metadata)
+                else:
+                    vector_db_id = vector_db.add_face_encoding(current_user.id, global_avg, metadata)
+            except Exception as e:
+                current_app.logger.warning(f"Vector DB operation failed: {e}")
+
+        if existing_face_data:
+            existing_face_data.vector_db_id = vector_db_id
+            existing_face_data.encoding_metadata = metadata
+            existing_face_data.encoding_version = encoding_version
+            db.session.commit()
+            face_data_row = existing_face_data
+        else:
+            face_data_row = FaceData(
+                user_id=current_user.id,
+                vector_db_id=vector_db_id,
+                encoding_metadata=metadata,
+                encoding_version=encoding_version
+            )
+            db.session.add(face_data_row)
+            db.session.commit()
+
+        missing_orientations = [o for o in allowed_orientations if o not in captured_orientations]
+
+        return jsonify({
+            'success': True,
+            'message': 'Orientation-based facial data uploaded successfully',
+            'orientations_captured': captured_orientations,
+            'orientations_missing': missing_orientations,
+            'embedding_dimension': embedding_dim,
+            'processed': processed,
+            'errors': errors[:5],
+            'vector_db_enabled': vector_db is not None,
+            'face_data': face_data_row.to_dict() if hasattr(face_data_row, 'to_dict') else {
+                'user_id': current_user.id,
+                'vector_db_id': vector_db_id,
+                'encoding_version': encoding_version
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error in upload_face_data_with_orientations: {str(e)}")
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
 @face_data_bp.route('/my-data', methods=['GET'])
 @jwt_required()
 def get_my_face_data():
@@ -1470,49 +1677,42 @@ def recognize_students_from_photo():
         except ValueError as e:
             return jsonify({'error': f'Invalid image: {str(e)}'}), 400
         
-        # Extract all faces from the image using ArcFace
-        current_app.logger.info(f"Extracting faces from classroom photo using ArcFace 512D...")
+        # Extract all faces from the image using enhanced ArcFace approach (script.py style)
+        current_app.logger.info(f"Extracting faces from classroom photo using enhanced ArcFace 512D...")
         
-        # Use ArcFace for face detection and encoding extraction
-        face_encodings = []
-        face_locations = []
+        # Use enhanced ArcFace batch detection
+        face_data_list = []
         
         if ARCFACE_AVAILABLE:
             try:
-                # Extract multiple face embeddings using ArcFace
-                from services.arcface_service import extract_multiple_arcface_embeddings, get_arcface_model
-                import cv2
+                # Use the enhanced batch face detection from arcface_service
+                from services.arcface_service import detect_faces_batch
                 
-                model = get_arcface_model()
-                if model:
-                    # Convert RGB to BGR for InsightFace
-                    image_bgr = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
-                    
-                    # Detect all faces
-                    faces = model.get(image_bgr)
-                    
-                    if faces and len(faces) > 0:
-                        for face in faces:
-                            face_encodings.append(face.normed_embedding)
-                            # Store bbox as (top, right, bottom, left) for compatibility
-                            bbox = face.bbox.astype(int)
-                            face_locations.append((bbox[1], bbox[2], bbox[3], bbox[0]))
-                        
-                        current_app.logger.info(f"✅ Extracted {len(face_encodings)} ArcFace 512D embeddings from classroom photo")
-                    else:
-                        current_app.logger.info("No faces detected with ArcFace")
+                face_data_list = detect_faces_batch(image_array)
+                current_app.logger.info(f"✅ Detected {len(face_data_list)} faces using enhanced ArcFace detection")
+                
             except Exception as e:
-                current_app.logger.error(f"ArcFace face detection failed: {e}, falling back to legacy")
+                current_app.logger.error(f"Enhanced ArcFace face detection failed: {e}, falling back to legacy")
         
-        # Fallback to legacy face_recognition if ArcFace failed or unavailable
-        if not face_encodings:
+        # Fallback to legacy face_recognition if enhanced ArcFace failed
+        if not face_data_list:
             current_app.logger.warning("⚠️ Using legacy face_recognition 128D (not compatible with 512D Vector DB!)")
             face_locations = face_recognition.face_locations(image_array, model='hog')
             if face_locations:
                 face_model = os.getenv('FACE_ENCODING_MODEL', 'large')
                 face_encodings = face_recognition.face_encodings(image_array, face_locations, model=face_model)
+                
+                # Convert to face_data_list format for compatibility
+                for idx, (encoding, location) in enumerate(zip(face_encodings, face_locations)):
+                    face_data_list.append({
+                        'face_number': idx + 1,
+                        'bbox': [location[3], location[0], location[1], location[2]],  # Convert to x1,y1,x2,y2
+                        'embedding': encoding,
+                        'embedding_dimension': len(encoding),
+                        'detection_score': 1.0
+                    })
         
-        if not face_encodings:
+        if not face_data_list:
             return jsonify({
                 'success': True,
                 'message': 'No faces detected in the image',
@@ -1524,7 +1724,7 @@ def recognize_students_from_photo():
                 'unrecognized_faces': 0
             }), 200
         
-        current_app.logger.info(f"Detected {len(face_encodings)} faces in classroom photo (Dimension: {len(face_encodings[0]) if face_encodings else 0}D)")
+        current_app.logger.info(f"Detected {len(face_data_list)} faces in classroom photo")
         
         # Get all enrolled students with facial data for this class
         enrolled_students_data = db.session.query(
@@ -1550,7 +1750,7 @@ def recognize_students_from_photo():
                 'error': 'No students in this class have registered facial data',
                 'class_id': class_id,
                 'class_name': class_obj.name,
-                'total_faces_detected': len(face_encodings),
+                'total_faces_detected': len(face_data_list),
                 'recommendation': 'Ask students to register their facial data first'
             }), 400
         
@@ -1562,19 +1762,29 @@ def recognize_students_from_photo():
         recognized_students = []
         student_ids_recognized = set()
         
+    # Enhanced recognition using script.py approach
+    # script.py uses cosine similarity in [-1, 1] with threshold 0.35
+    # Vector DB uses similarity in [0, 1], so convert threshold: (t + 1) / 2
+    script_threshold = 0.35
+    vector_db_threshold = (script_threshold + 1.0) / 2.0  # ~0.675
+        
         # Match each detected face with enrolled students
-        for face_idx, face_encoding in enumerate(face_encodings):
+        for face_data in face_data_list:
+            face_encoding = face_data['embedding']
+            face_number = face_data['face_number']
+            bbox = face_data['bbox']
+            
             best_match = None
             best_similarity = 0
             
             if vector_db:
-                # Use vector database for efficient matching
+                # Use vector database for efficient matching with script.py threshold
                 try:
-                    # Search for similar faces using the correct wrapper method
+                    # Search for similar faces using script.py approach
                     matches = vector_db.find_similar_faces(
                         face_encoding,
                         top_k=5,
-                        threshold=recognition_threshold
+                        threshold=vector_db_threshold
                     )
                     
                     # Filter matches to only enrolled students in this class
@@ -1590,17 +1800,25 @@ def recognize_students_from_photo():
                                 best_similarity = similarity
                                 student_info = next((s for s in enrolled_students_data if s.id == user_id), None)
                                 if student_info:
+                                    # Log each potential match with percentage
+                                    try:
+                                        percent = round(float(similarity) * 100.0, 2)
+                                        current_app.logger.info(
+                                            f"Match candidate: user_id={user_id}, name={student_info.first_name} {student_info.last_name}, "
+                                            f"similarity={similarity:.4f} ({percent}%)"
+                                        )
+                                    except Exception:
+                                        pass
                                     best_match = {
                                         'student_id': student_info.id,
                                         'name': f"{student_info.first_name} {student_info.last_name}",
                                         'email': student_info.email,
                                         'confidence': similarity,
-                                        'face_number': face_idx + 1,
+                                        'similarity_percentage': round(float(similarity) * 100.0, 2),
+                                        'face_number': face_number,
                                         'face_location': {
-                                            'top': face_locations[face_idx][0],
-                                            'right': face_locations[face_idx][1],
-                                            'bottom': face_locations[face_idx][2],
-                                            'left': face_locations[face_idx][3]
+                                            'x1': int(bbox[0]), 'y1': int(bbox[1]),
+                                            'x2': int(bbox[2]), 'y2': int(bbox[3])
                                         }
                                     }
                     
@@ -1621,11 +1839,19 @@ def recognize_students_from_photo():
             
             # Add to recognized list if match found
             if best_match and best_match['student_id'] not in student_ids_recognized:
+                try:
+                    current_app.logger.info(
+                        f"Best match selected for face #{face_number}: student_id={best_match['student_id']}, "
+                        f"name={best_match['name']}, similarity={best_match['confidence']:.4f} "
+                        f"({best_match.get('similarity_percentage', 0)}%)"
+                    )
+                except Exception:
+                    pass
                 recognized_students.append(best_match)
                 student_ids_recognized.add(best_match['student_id'])
         
         # Calculate statistics
-        total_faces_detected = len(face_encodings)
+        total_faces_detected = len(face_data_list)
         total_recognized = len(recognized_students)
         unrecognized_faces = total_faces_detected - total_recognized
         total_enrolled_with_data = len(enrolled_students_data)
@@ -1734,13 +1960,22 @@ def test_face_recognition():
                 
                 if user_match:
                     confidence = user_match['similarity']
+                    confidence_percentage = round(float(confidence) * 100.0, 2)
                     recognition_quality = 'excellent' if confidence > 0.8 else 'good' if confidence > 0.6 else 'fair'
                     
+                    try:
+                        current_app.logger.info(
+                            f"Test recognition: user_id={current_user.id}, similarity={confidence:.4f} ({confidence_percentage}%)"
+                        )
+                    except Exception:
+                        pass
+
                     return jsonify({
                         'success': True,
                         'recognition_possible': True,
                         'matched': True,
                         'confidence': confidence,
+                        'confidence_percentage': confidence_percentage,
                         'recognition_quality': recognition_quality,
                         'message': f'Successfully recognized! Confidence: {confidence:.2f}',
                         'total_matches_found': len(matches),
