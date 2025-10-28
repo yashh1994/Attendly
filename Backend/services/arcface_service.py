@@ -66,6 +66,7 @@ def get_arcface_model():
 def extract_arcface_embedding(image_array: np.ndarray, return_largest: bool = True) -> Optional[np.ndarray]:
     """
     Extract 512-dimensional ArcFace embedding from image
+    Enhanced with script.py approach for better efficiency
     
     Args:
         image_array: NumPy array of image (RGB format)
@@ -87,7 +88,7 @@ def extract_arcface_embedding(image_array: np.ndarray, return_largest: bool = Tr
         else:
             image_bgr = image_array
         
-        # Detect and extract faces
+        # Detect and extract faces - using script.py approach
         faces = model.get(image_bgr)
         
         if not faces or len(faces) == 0:
@@ -95,7 +96,7 @@ def extract_arcface_embedding(image_array: np.ndarray, return_largest: bool = Tr
             return None
         
         if len(faces) > 1:
-            logger.warning(f"Multiple faces detected ({len(faces)}), using largest face")
+            logger.debug(f"Multiple faces detected ({len(faces)}), using largest face")
         
         if return_largest:
             # Find largest face by bounding box area
@@ -191,25 +192,18 @@ def calculate_average_embedding(embeddings: List[np.ndarray]) -> np.ndarray:
 def compute_similarity(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
     """
     Compute cosine similarity between two ArcFace embeddings
+    Uses the efficient approach from script.py - direct cosine similarity
     
     Args:
-        embedding1: First 512D embedding
-        embedding2: Second 512D embedding
+        embedding1: First 512D embedding (already normalized by ArcFace)
+        embedding2: Second 512D embedding (already normalized by ArcFace)
     
     Returns:
-        Similarity score (0-1, higher is more similar)
+        Similarity score (cosine similarity, -1 to 1, higher is more similar)
     """
     try:
-        # Ensure embeddings are normalized
-        emb1_norm = embedding1 / (np.linalg.norm(embedding1) + 1e-8)
-        emb2_norm = embedding2 / (np.linalg.norm(embedding2) + 1e-8)
-        
-        # Cosine similarity (dot product of normalized vectors)
-        similarity = np.dot(emb1_norm, emb2_norm)
-        
-        # Convert to 0-1 range (cosine similarity is -1 to 1)
-        similarity = (similarity + 1) / 2
-        
+        # Direct cosine similarity - more efficient since ArcFace embeddings are already normalized
+        similarity = np.dot(embedding1, embedding2) / (np.linalg.norm(embedding1) * np.linalg.norm(embedding2))
         return float(similarity)
         
     except Exception as e:
@@ -219,14 +213,15 @@ def compute_similarity(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
 
 def match_faces(query_embedding: np.ndarray, 
                 database_embeddings: List[np.ndarray], 
-                threshold: float = 0.6) -> List[Tuple[int, float]]:
+                threshold: float = 0.35) -> List[Tuple[int, float]]:
     """
     Match a query embedding against database of embeddings
+    Enhanced with script.py approach - optimized similarity threshold
     
     Args:
         query_embedding: Query face embedding (512D)
         database_embeddings: List of database embeddings
-        threshold: Minimum similarity threshold
+        threshold: Minimum similarity threshold (default 0.35 like script.py)
     
     Returns:
         List of (index, similarity) tuples for matches above threshold, sorted by similarity
@@ -242,7 +237,69 @@ def match_faces(query_embedding: np.ndarray,
     # Sort by similarity (descending)
     matches.sort(key=lambda x: x[1], reverse=True)
     
+    logger.debug(f"Found {len(matches)} matches above threshold {threshold}")
     return matches
+
+
+def recognize_face_in_image(image_array: np.ndarray, 
+                           database_embeddings: List[np.ndarray],
+                           student_names: List[str] = None,
+                           threshold: float = 0.35) -> List[Dict]:
+    """
+    Recognize faces in an image against a database of known faces
+    Inspired by script.py approach for efficient recognition
+    
+    Args:
+        image_array: Image as numpy array (RGB)
+        database_embeddings: List of known face embeddings
+        student_names: Optional list of student names corresponding to embeddings
+        threshold: Recognition threshold (default 0.35)
+    
+    Returns:
+        List of recognized faces with similarity scores
+    """
+    try:
+        model = get_arcface_model()
+        
+        if model is None:
+            return []
+        
+        # Convert RGB to BGR
+        image_bgr = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+        
+        # Detect all faces in the image
+        faces = model.get(image_bgr)
+        
+        recognized_faces = []
+        
+        for face_idx, face in enumerate(faces):
+            query_embedding = face.normed_embedding
+            
+            # Find matches
+            matches = match_faces(query_embedding, database_embeddings, threshold)
+            
+            face_info = {
+                'face_number': face_idx + 1,
+                'bbox': face.bbox.tolist(),
+                'matches': []
+            }
+            
+            for match_idx, similarity in matches:
+                match_info = {
+                    'database_index': match_idx,
+                    'similarity': similarity,
+                    'student_name': student_names[match_idx] if student_names and match_idx < len(student_names) else f"Student_{match_idx}"
+                }
+                face_info['matches'].append(match_info)
+            
+            recognized_faces.append(face_info)
+        
+        logger.info(f"Recognized {len(recognized_faces)} faces in image")
+        return recognized_faces
+        
+    except Exception as e:
+        logger.error(f"Error in face recognition: {str(e)}")
+        return []
 
 
 def detect_faces_batch(image_array: np.ndarray) -> List[Dict]:
