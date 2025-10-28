@@ -4,4 +4,21 @@
 
 /Backend/.env
 
-/attendance model traning/venv/
+/Attendance model traning/venv/
+/Attendance model traning/models/
+/Attendance model traning/teacher/
+
+# /Attendance model traning/*.npy
+# /Attendance model traning/*.json
+
+Backend/**/__pycache__/
+
+
+/.vscode/
+# Ensure all files inside .vscode are ignored
+.vscode/*
+.vscode/
+
+# If .vscode was already committed, run:
+# git rm -r --cached .vscode
+# then commit the change to stop tracking those files
