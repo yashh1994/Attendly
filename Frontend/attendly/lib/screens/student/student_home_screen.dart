@@ -45,9 +45,11 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
 
       final response = await _apiService.getStudentFaceDataStatus();
       print('🔥 FLUTTER: Face data status response: $response');
-      print('🔥 FLUTTER: Registered value: ${response['registered']}');
+      print(
+        '🔥 FLUTTER: Has facial data value: ${response['has_facial_data']}',
+      );
       setState(() {
-        _hasFaceData = response['registered'] ?? false;
+        _hasFaceData = response['has_facial_data'] ?? false;
         print('🔥 FLUTTER: _hasFaceData set to: $_hasFaceData');
       });
     } catch (e) {
@@ -186,13 +188,16 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, Routes.faceCapture);
+                Navigator.pushNamed(
+                  context,
+                  Routes.orientationFaceRegistration,
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber.shade700,
               ),
               child: const Text(
-                'Register Now',
+                'Register Face Data',
                 style: TextStyle(color: Colors.white),
               ),
             ),

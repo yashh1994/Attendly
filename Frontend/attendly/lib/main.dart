@@ -9,7 +9,7 @@ import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/auth/role_selection_screen.dart';
-import 'screens/student/face_capture_screen.dart';
+import 'screens/student/orientation_face_registration_screen.dart';
 import 'screens/student/student_home_screen.dart';
 import 'screens/teacher/teacher_home_screen.dart';
 import 'utils/app_theme.dart';
@@ -60,7 +60,13 @@ class AttendlyApp extends StatelessWidget {
               Routes.login: (context) => const LoginScreen(),
               Routes.signup: (context) => const SignupScreen(),
               Routes.roleSelection: (context) => const RoleSelectionScreen(),
-              Routes.faceCapture: (context) => const FaceCaptureScreen(),
+              // Legacy single-flow face capture route now points to the
+              // orientation-based registration screen to enforce the
+              // 5-orientation upload flow as the single default path.
+              Routes.faceCapture: (context) =>
+                  const OrientationFaceRegistrationScreen(),
+              Routes.orientationFaceRegistration: (context) =>
+                  const OrientationFaceRegistrationScreen(),
               Routes.studentHome: (context) => const StudentHomeScreen(),
               Routes.teacherHome: (context) => const TeacherHomeScreen(),
             },

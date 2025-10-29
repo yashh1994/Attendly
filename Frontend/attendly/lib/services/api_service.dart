@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/user.dart';
 import '../models/class.dart';
 import '../models/attendance.dart';
 
@@ -457,11 +456,11 @@ class ApiService {
 
   Future<Map<String, dynamic>> getStudentFaceDataStatus() async {
     print('🔥 FLUTTER: Calling getStudentFaceDataStatus()');
-    print('🔥 FLUTTER: URL: $baseUrl/api/face-data/student-status');
+    print('🔥 FLUTTER: URL: $baseUrl/api/face-data/student/facial-status');
     print('🔥 FLUTTER: Headers: $headers');
 
     final response = await http.get(
-      Uri.parse('$baseUrl/api/face-data/student-status'),
+      Uri.parse('$baseUrl/api/face-data/student/facial-status'),
       headers: headers,
     );
 
@@ -609,6 +608,32 @@ class ApiService {
 
     print('🔥 FLUTTER: Delete facial data response: ${response.statusCode}');
     print('🔥 FLUTTER: Delete facial data body: ${response.body}');
+    return _handleResponse(response);
+  }
+
+  // Upload facial data with orientations for better recognition
+  Future<Map<String, dynamic>> uploadFaceDataWithOrientations({
+    required List<Map<String, String>>
+    images, // [{image: base64, orientation: "front"}]
+  }) async {
+    print(
+      '🔥 FLUTTER: Uploading facial data with orientations - ${images.length} images',
+    );
+
+    for (var i = 0; i < images.length; i++) {
+      print(
+        '🔥 FLUTTER: Image ${i + 1}: orientation = ${images[i]['orientation']}',
+      );
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/face-data/upload-orientations'),
+      headers: headers,
+      body: jsonEncode({'images': images}),
+    );
+
+    print('🔥 FLUTTER: Orientation upload response: ${response.statusCode}');
+    print('🔥 FLUTTER: Orientation upload body: ${response.body}');
     return _handleResponse(response);
   }
 
