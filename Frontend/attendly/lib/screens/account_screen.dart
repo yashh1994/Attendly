@@ -35,7 +35,7 @@ class _AccountScreenState extends State<AccountScreen> {
         print('🔥 FLUTTER: Face data status response: $response');
 
         setState(() {
-          _hasFaceData = response['registered'] ?? false;
+          _hasFaceData = response['has_facial_data'] ?? false;
           _isLoadingFaceStatus = false;
         });
       } else {
@@ -101,7 +101,9 @@ class _AccountScreenState extends State<AccountScreen> {
                         radius: 50,
                         backgroundColor: Colors.white.withOpacity(0.2),
                         child: Text(
-                          user?.firstName?.substring(0, 1).toUpperCase() ?? 'U',
+                          user?.firstName != null
+                              ? user!.firstName.substring(0, 1).toUpperCase()
+                              : 'U',
                           style: const TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
@@ -137,7 +139,9 @@ class _AccountScreenState extends State<AccountScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          user?.role?.toUpperCase() ?? 'USER',
+                          user?.role != null
+                              ? user!.role.toUpperCase()
+                              : 'USER',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -200,8 +204,11 @@ class _AccountScreenState extends State<AccountScreen> {
                                 onPressed: () {
                                   Navigator.pushNamed(
                                     context,
-                                    Routes.faceCapture,
-                                  );
+                                    Routes.orientationFaceRegistration,
+                                  ).then((_) {
+                                    // Refresh face data status after returning
+                                    _checkFaceDataStatus();
+                                  });
                                 },
                                 icon: const Icon(
                                   Icons.face_retouching_natural,
@@ -292,7 +299,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                 onPressed: () {
                                   Navigator.pushNamed(
                                     context,
-                                    Routes.faceCapture,
+                                    Routes.orientationFaceRegistration,
                                   ).then((_) {
                                     // Refresh face data status after returning
                                     _checkFaceDataStatus();
