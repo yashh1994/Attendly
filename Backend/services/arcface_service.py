@@ -89,9 +89,13 @@ def extract_arcface_embedding(image_array: np.ndarray, return_largest: bool = Tr
             image_bgr = image_array
         
         # Detect and extract faces - using script.py approach
-        faces = model.get(image_bgr)
-        
-        if not faces or len(faces) == 0:
+        try:
+            faces = model.get(image_bgr)
+        except Exception as e:
+            logger.warning(f"ArcFace detection failed: {e}")
+            faces = []
+
+        if not faces:
             logger.debug("No face detected in image")
             return None
         
@@ -99,12 +103,39 @@ def extract_arcface_embedding(image_array: np.ndarray, return_largest: bool = Tr
             logger.debug(f"Multiple faces detected ({len(faces)}), using largest face")
         
         if return_largest:
-            # Find largest face by bounding box area
-            largest_face = max(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]))
-            embedding = largest_face.normed_embedding
-            
+            # Find largest face by bounding box area (safe access)
+            def _bbox_area(f):
+                try:
+                    bbox = getattr(f, 'bbox', None)
+                    if bbox is None:
+                        return 0
+                    arr = np.asarray(bbox)
+                    if arr.size >= 4:
+                        w = float(arr[2]) - float(arr[0])
+                        h = float(arr[3]) - float(arr[1])
+                        return max(0.0, w * h)
+                except Exception:
+                    return 0
+                return 0
+
+            largest_face = max(faces, key=_bbox_area)
+
+            # Retrieve embedding safely
+            embedding = getattr(largest_face, 'normed_embedding', None)
+            if embedding is None:
+                embedding = getattr(largest_face, 'embedding', None)
+
+            if embedding is None:
+                logger.debug("Largest face has no embedding")
+                return None
+
+            embedding = np.asarray(embedding, dtype=np.float32)
+            # Normalize if not unit
+            nrm = np.linalg.norm(embedding)
+            if nrm > 0:
+                embedding = embedding / nrm
+
             logger.debug(f"Extracted ArcFace embedding: shape={embedding.shape}, norm={np.linalg.norm(embedding):.4f}")
-            
             return embedding
         else:
             # Return all face embeddings
@@ -142,11 +173,17 @@ def extract_multiple_arcface_embeddings(image_arrays: List[np.ndarray]) -> Tuple
             embedding = extract_arcface_embedding(image_array)
             
             if embedding is not None:
-                valid_embeddings.append(embedding)
+                # Ensure numpy array and normalization
+                emb_arr = np.asarray(embedding, dtype=np.float32)
+                nrm = np.linalg.norm(emb_arr)
+                if nrm > 0:
+                    emb_arr = emb_arr / nrm
+
+                valid_embeddings.append(emb_arr)
                 result.update({
                     'success': True,
                     'face_detected': True,
-                    'embedding_dimension': len(embedding),
+                    'embedding_dimension': int(emb_arr.shape[0]),
                     'quality_score': 0.95  # ArcFace provides high quality embeddings
                 })
             else:
@@ -202,9 +239,19 @@ def compute_similarity(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
         Similarity score (cosine similarity, -1 to 1, higher is more similar)
     """
     try:
-        # Direct cosine similarity - more efficient since ArcFace embeddings are already normalized
-        similarity = np.dot(embedding1, embedding2) / (np.linalg.norm(embedding1) * np.linalg.norm(embedding2))
-        return float(similarity)
+        # Direct cosine similarity - handle non-normalized inputs gracefully
+        try:
+            a = np.asarray(embedding1, dtype=np.float32)
+            b = np.asarray(embedding2, dtype=np.float32)
+            na = np.linalg.norm(a)
+            nb = np.linalg.norm(b)
+            if na == 0 or nb == 0:
+                return 0.0
+            similarity = float(np.dot(a, b) / (na * nb))
+            return similarity
+        except Exception as e:
+            logger.warning(f"compute_similarity failed: {e}")
+            return 0.0
         
     except Exception as e:
         logger.error(f"Error computing similarity: {str(e)}")
@@ -268,19 +315,60 @@ def recognize_face_in_image(image_array: np.ndarray,
         image_bgr = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
         
         # Detect all faces in the image
-        faces = model.get(image_bgr)
+        try:
+            faces = model.get(image_bgr)
+        except Exception as e:
+            logger.warning(f"ArcFace batch get failed in recognition: {e}")
+            faces = []
         
         recognized_faces = []
         
         for face_idx, face in enumerate(faces):
-            query_embedding = face.normed_embedding
+            # Safely get embedding and convert to numpy array
+            query_embedding = getattr(face, 'normed_embedding', None) or getattr(face, 'embedding', None)
+            if query_embedding is None:
+                logger.warning(f"Face {face_idx + 1} has no embedding, skipping recognition for this face")
+                continue
+
+            try:
+                query_embedding = np.asarray(query_embedding, dtype=np.float32)
+                qnorm = np.linalg.norm(query_embedding)
+                if qnorm > 0:
+                    query_embedding = query_embedding / qnorm
+                else:
+                    logger.warning(f"Query embedding for face {face_idx + 1} has zero norm, skipping")
+                    continue
+            except Exception as e:
+                logger.warning(f"Failed to process query embedding for face {face_idx + 1}: {e}")
+                continue
             
             # Find matches
             matches = match_faces(query_embedding, database_embeddings, threshold)
             
+            # Safe bbox extraction
+            # Safe bbox extraction
+            try:
+                bbox_raw = getattr(face, 'bbox', None)
+                if bbox_raw is None:
+                    bbox = [0, 0, 100, 100]
+                else:
+                    # try several conversion strategies
+                    if isinstance(bbox_raw, list):
+                        bbox = bbox_raw
+                    else:
+                        try:
+                            bbox = np.asarray(bbox_raw).tolist()
+                        except Exception:
+                            bbox = [float(bbox_raw[0]) if hasattr(bbox_raw, '__len__') and len(bbox_raw) > 0 else 0,
+                                    float(bbox_raw[1]) if hasattr(bbox_raw, '__len__') and len(bbox_raw) > 1 else 0,
+                                    float(bbox_raw[2]) if hasattr(bbox_raw, '__len__') and len(bbox_raw) > 2 else 100,
+                                    float(bbox_raw[3]) if hasattr(bbox_raw, '__len__') and len(bbox_raw) > 3 else 100]
+            except Exception:
+                bbox = [0, 0, 100, 100]
+            
             face_info = {
                 'face_number': face_idx + 1,
-                'bbox': face.bbox.tolist(),
+                'bbox': bbox,
                 'matches': []
             }
             
@@ -322,22 +410,93 @@ def detect_faces_batch(image_array: np.ndarray) -> List[Dict]:
         image_bgr = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
         
         # Detect faces
-        faces = model.get(image_bgr)
-        
+        try:
+            faces = model.get(image_bgr)
+        except Exception as e:
+            logger.warning(f"ArcFace batch get failed in detect_faces_batch: {e}")
+            faces = []
+
         face_data = []
-        for idx, face in enumerate(faces):
+        for idx, face in enumerate(faces or []):
+            # Retrieve embedding safely and convert to numpy array
+            embedding = getattr(face, 'normed_embedding', None) or getattr(face, 'embedding', None)
+
+            if embedding is None:
+                logger.warning(f"Face {idx + 1} has no embedding, skipping")
+                continue
+
+            try:
+                emb_arr = np.asarray(embedding, dtype=np.float32)
+                # Normalize if not already unit norm
+                norm = np.linalg.norm(emb_arr)
+                if norm > 0:
+                    emb_arr = emb_arr / norm
+            except Exception as e:
+                logger.warning(f"Failed to convert embedding for face {idx + 1}: {e}")
+                continue
+
+            # Safe bbox extraction (supports list, tuple, numpy array or None)
+            try:
+                bbox_raw = getattr(face, 'bbox', None)
+                if bbox_raw is None:
+                    bbox = [0, 0, 100, 100]
+                else:
+                    if isinstance(bbox_raw, list):
+                        bbox = bbox_raw
+                    else:
+                        try:
+                            bbox = np.asarray(bbox_raw).tolist()
+                        except Exception:
+                            # Fallback to try indexing
+                            try:
+                                bbox = [float(bbox_raw[0]), float(bbox_raw[1]), float(bbox_raw[2]), float(bbox_raw[3])]
+                            except Exception:
+                                bbox = [0, 0, 100, 100]
+            except Exception:
+                bbox = [0, 0, 100, 100]
+
+            # Safe landmarks extraction
+            try:
+                lm_raw = getattr(face, 'landmark_2d_106', None)
+                landmarks = None
+                if lm_raw is not None:
+                    if isinstance(lm_raw, list):
+                        landmarks = lm_raw
+                    else:
+                        try:
+                            landmarks = np.asarray(lm_raw).tolist()
+                        except Exception:
+                            landmarks = None
+            except Exception:
+                landmarks = None
+
+            try:
+                det_score = float(getattr(face, 'det_score', 1.0))
+            except Exception:
+                det_score = 1.0
+
+            try:
+                age_val = int(getattr(face, 'age', 0)) if getattr(face, 'age', None) is not None else None
+            except Exception:
+                age_val = None
+
+            try:
+                gender_val = int(getattr(face, 'gender', 0)) if getattr(face, 'gender', None) is not None else None
+            except Exception:
+                gender_val = None
+
             face_info = {
                 'face_number': idx + 1,
-                'bbox': face.bbox.tolist(),
-                'embedding': face.normed_embedding,
-                'embedding_dimension': len(face.normed_embedding),
-                'detection_score': float(face.det_score) if hasattr(face, 'det_score') else 1.0,
-                'landmarks': face.landmark_2d_106.tolist() if hasattr(face, 'landmark_2d_106') else None,
-                'age': int(face.age) if hasattr(face, 'age') else None,
-                'gender': int(face.gender) if hasattr(face, 'gender') else None
+                'bbox': bbox,
+                'embedding': emb_arr,
+                'embedding_dimension': int(emb_arr.shape[0]),
+                'detection_score': det_score,
+                'landmarks': landmarks,
+                'age': age_val,
+                'gender': gender_val
             }
             face_data.append(face_info)
-        
+
         logger.info(f"Detected {len(face_data)} faces in image")
         return face_data
         

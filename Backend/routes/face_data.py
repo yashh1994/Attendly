@@ -571,20 +571,22 @@ def upload_face_data_with_orientations():
                 per_orientation_avg[o] = avg
                 captured_orientations.append(o)
 
-        # Validate minimum coverage: front + any two others
-        required = {'front'}
+        # Validate all 5 orientations are required
+        required = set(allowed_orientations)  # All 5 orientations required
         if not required.issubset(set(captured_orientations)):
+            missing = required - set(captured_orientations)
             return jsonify({
                 'success': False,
-                'message': "Please include at least a 'front' image",
+                'message': f"Please include all 5 orientations. Missing: {', '.join(missing)}",
                 'captured_orientations': captured_orientations,
+                'missing_orientations': list(missing),
                 'errors': errors[:5]
             }), 400
 
-        if len(captured_orientations) < 3:
+        if len(captured_orientations) < 5:
             return jsonify({
                 'success': False,
-                'message': 'Please include at least 3 orientations (front + any two of left/right/up/down)',
+                'message': 'Please include all 5 orientations (front, left, right, up, down)',
                 'captured_orientations': captured_orientations,
                 'errors': errors[:5]
             }), 400
@@ -1762,11 +1764,11 @@ def recognize_students_from_photo():
         recognized_students = []
         student_ids_recognized = set()
         
-    # Enhanced recognition using script.py approach
-    # script.py uses cosine similarity in [-1, 1] with threshold 0.35
-    # Vector DB uses similarity in [0, 1], so convert threshold: (t + 1) / 2
-    script_threshold = 0.35
-    vector_db_threshold = (script_threshold + 1.0) / 2.0  # ~0.675
+        # Enhanced recognition using script.py approach
+        # script.py uses cosine similarity in [-1, 1] with threshold 0.35
+        # Vector DB uses similarity in [0, 1], so convert threshold: (t + 1) / 2
+        script_threshold = 0.35
+        vector_db_threshold = (script_threshold + 1.0) / 2.0  # ~0.675
         
         # Match each detected face with enrolled students
         for face_data in face_data_list:
