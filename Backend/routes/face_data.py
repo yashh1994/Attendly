@@ -655,51 +655,11 @@ def upload_face_data_with_orientations():
         missing_orientations = [o for o in allowed_orientations if o not in captured_orientations]
 
         return jsonify({
-            'success': True,
-            'message': 'Orientation-based facial data uploaded successfully',
-            'orientations_captured': captured_orientations,
-            'orientations_missing': missing_orientations,
-            'embedding_dimension': embedding_dim,
-            'processed': processed,
-            'errors': errors[:5],
-            'vector_db_enabled': vector_db is not None,
-            'face_data': face_data_row.to_dict() if hasattr(face_data_row, 'to_dict') else {
-                'user_id': current_user.id,
-                'vector_db_id': vector_db_id,
-                'encoding_version': encoding_version
-            }
-        }), 201
-
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f"Error in upload_face_data_with_orientations: {str(e)}")
-        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
-
-@face_data_bp.route('/my-data', methods=['GET'])
-@jwt_required()
-def get_my_face_data():
-    """Get current user's face data"""
-    try:
-        current_user = get_current_user()
-        
-        if not current_user:
-            return jsonify({'error': 'User not found'}), 404
-        
-        face_data = FaceData.query.filter_by(
-            user_id=current_user.id,
-            is_active=True
-        ).first()
-        
-        vector_db = get_vector_db()
-        vector_db_status = None
-        
-        if face_data and vector_db and face_data.vector_db_id:
-            try:
-                # Check if encoding exists in vector DB
-                vector_data = vector_db.get_face_encoding(current_user.id)
-                vector_db_status = 'connected' if vector_data else 'not_found'
-            except Exception as e:
-                vector_db_status = f'error: {str(e)}'
+            'success': False,
+            'message': 'Face data upload failed due to missing orientations or processing error',
+            'missing_orientations': missing_orientations,
+            'errors': errors
+        }), 400
         
         if not face_data:
             return jsonify({
@@ -1640,217 +1600,175 @@ def recognize_students_from_photo():
         "unrecognized_faces": 3
     }
     """
+    # No outer try block needed; all error handling is local
+    current_user = get_current_user()
+    if not current_user:
+        return jsonify({'error': 'User not found'}), 404
+    if current_user.role != 'teacher':
+        return jsonify({'error': 'Only teachers can perform facial recognition'}), 403
+    data = request.get_json()
+    # Validate request
+    if not data or 'image' not in data:
+        return jsonify({'error': 'Image is required'}), 400
+    if 'class_id' not in data:
+        return jsonify({'error': 'Class ID is required'}), 400
+    class_id = data['class_id']
+        
+    class_id = data['class_id']
+    # recognition_threshold is treated as vector-db cosine similarity in [0,1]
+    # Default corresponds roughly to script.py 0.35 cosine (converted to ~0.675)
+    recognition_threshold = data.get('recognition_threshold', 0.675)
+
+    # Validate threshold
+    if not (0.4 <= recognition_threshold <= 0.9):
+        return jsonify({'error': 'Recognition threshold must be between 0.4 and 0.9'}), 400
+
+    # Verify teacher owns this class
+    from models.models import Class, ClassEnrollment
+    class_obj = Class.query.filter_by(id=class_id, teacher_id=current_user.id, is_active=True).first()
+    if not class_obj:
+        return jsonify({'error': 'Class not found or you do not have access'}), 404
+
+    # Decode image
     try:
-        current_user = get_current_user()
-        
-        if not current_user:
-            return jsonify({'error': 'User not found'}), 404
-        
-        if current_user.role != 'teacher':
-            return jsonify({'error': 'Only teachers can perform facial recognition'}), 403
-        
-        data = request.get_json()
-        
-        # Validate request
-        if not data or 'image' not in data:
-            return jsonify({'error': 'Image is required'}), 400
-        
-        if 'class_id' not in data:
-            return jsonify({'error': 'Class ID is required'}), 400
-        
-        class_id = data['class_id']
-        recognition_threshold = data.get('recognition_threshold', 0.6)
-        
-        # Validate threshold
-        if not (0.4 <= recognition_threshold <= 0.9):
-            return jsonify({'error': 'Recognition threshold must be between 0.4 and 0.9'}), 400
-        
-        # Verify teacher owns this class
-        from models.models import Class, ClassEnrollment
-        class_obj = Class.query.filter_by(id=class_id, teacher_id=current_user.id, is_active=True).first()
-        
-        if not class_obj:
-            return jsonify({'error': 'Class not found or you do not have access'}), 404
-        
-        # Decode image
+        image_array = decode_base64_image(data['image'])
+        current_app.logger.info(f"Processing classroom photo for class {class_id} by teacher {current_user.id}")
+    except ValueError as e:
+        return jsonify({'error': f'Invalid image: {str(e)}'}), 400
+
+    # Extract all faces from the image using enhanced ArcFace approach (script.py style)
+    current_app.logger.info(f"Extracting faces from classroom photo using enhanced ArcFace 512D...")
+
+    # Use enhanced ArcFace batch detection
+    face_data_list = []
+    if ARCFACE_AVAILABLE:
         try:
-            image_array = decode_base64_image(data['image'])
-            current_app.logger.info(f"Processing classroom photo for class {class_id} by teacher {current_user.id}")
-        except ValueError as e:
-            return jsonify({'error': f'Invalid image: {str(e)}'}), 400
-        
-        # Extract all faces from the image using enhanced ArcFace approach (script.py style)
-        current_app.logger.info(f"Extracting faces from classroom photo using enhanced ArcFace 512D...")
-        
-        # Use enhanced ArcFace batch detection
-        face_data_list = []
-        
-        if ARCFACE_AVAILABLE:
+            # Use the enhanced batch face detection from arcface_service
+            from services.arcface_service import detect_faces_batch
+            face_data_list = detect_faces_batch(image_array)
+            current_app.logger.info(f"✅ Detected {len(face_data_list)} faces using enhanced ArcFace detection")
+        except Exception as e:
+            current_app.logger.error(f"Enhanced ArcFace face detection failed: {e}, skipping detection.")
+
+    # Do NOT fall back to legacy 128D encodings; they are incompatible with 512D vector DB
+    # If ArcFace failed to detect faces, return early with zero detected to avoid false matches
+    if not face_data_list:
+        current_app.logger.warning(
+            "ArcFace returned no faces; skipping legacy 128D fallback to preserve 512D consistency"
+        )
+        return jsonify({
+            'success': True,
+            'message': 'No faces detected in the image',
+            'class_id': class_id,
+            'class_name': class_obj.name,
+            'total_faces_detected': 0,
+            'total_recognized': 0,
+            'recognized_students': [],
+            'unrecognized_faces': 0
+        }), 200
+
+    current_app.logger.info(f"Detected {len(face_data_list)} faces in classroom photo")
+
+    # Get all enrolled students with facial data for this class
+    enrolled_students_data = db.session.query(
+        User.id,
+        User.first_name,
+        User.last_name,
+        User.email,
+        FaceData.vector_db_id
+    ).join(
+        ClassEnrollment, User.id == ClassEnrollment.student_id
+    ).join(
+        FaceData, User.id == FaceData.user_id
+    ).filter(
+        ClassEnrollment.class_id == class_id,
+        ClassEnrollment.is_active == True,
+        FaceData.is_active == True,
+        User.is_active == True
+    ).all()
+
+    if not enrolled_students_data:
+        return jsonify({
+            'success': False,
+            'error': 'No students in this class have registered facial data',
+            'class_id': class_id,
+            'class_name': class_obj.name,
+            'total_faces_detected': len(face_data_list),
+            'recommendation': 'Ask students to register their facial data first'
+        }), 400
+
+    current_app.logger.info(f"Found {len(enrolled_students_data)} enrolled students with facial data")
+
+    # Get vector database
+    vector_db = get_vector_db()
+    recognized_students = []
+    student_ids_recognized = set()
+    # Recognition uses cosine similarity in [0, 1]; use provided threshold directly
+    vector_db_threshold = float(recognition_threshold)
+
+    # Match each detected face with enrolled students
+    for face_data in face_data_list:
+        face_encoding = face_data['embedding']
+        face_number = face_data['face_number']
+        bbox = face_data['bbox']
+
+        best_match = None
+        best_similarity = 0
+
+        if vector_db:
             try:
-                # Use the enhanced batch face detection from arcface_service
-                from services.arcface_service import detect_faces_batch
-                
-                face_data_list = detect_faces_batch(image_array)
-                current_app.logger.info(f"✅ Detected {len(face_data_list)} faces using enhanced ArcFace detection")
-                
-            except Exception as e:
-                current_app.logger.error(f"Enhanced ArcFace face detection failed: {e}, falling back to legacy")
-        
-        # Fallback to legacy face_recognition if enhanced ArcFace failed
-        if not face_data_list:
-            current_app.logger.warning("⚠️ Using legacy face_recognition 128D (not compatible with 512D Vector DB!)")
-            face_locations = face_recognition.face_locations(image_array, model='hog')
-            if face_locations:
-                face_model = os.getenv('FACE_ENCODING_MODEL', 'large')
-                face_encodings = face_recognition.face_encodings(image_array, face_locations, model=face_model)
-                
-                # Convert to face_data_list format for compatibility
-                for idx, (encoding, location) in enumerate(zip(face_encodings, face_locations)):
-                    face_data_list.append({
-                        'face_number': idx + 1,
-                        'bbox': [location[3], location[0], location[1], location[2]],  # Convert to x1,y1,x2,y2
-                        'embedding': encoding,
-                        'embedding_dimension': len(encoding),
-                        'detection_score': 1.0
-                    })
-        
-        if not face_data_list:
-            return jsonify({
-                'success': True,
-                'message': 'No faces detected in the image',
-                'class_id': class_id,
-                'class_name': class_obj.name,
-                'total_faces_detected': 0,
-                'total_recognized': 0,
-                'recognized_students': [],
-                'unrecognized_faces': 0
-            }), 200
-        
-        current_app.logger.info(f"Detected {len(face_data_list)} faces in classroom photo")
-        
-        # Get all enrolled students with facial data for this class
-        enrolled_students_data = db.session.query(
-            User.id,
-            User.first_name,
-            User.last_name,
-            User.email,
-            FaceData.vector_db_id
-        ).join(
-            ClassEnrollment, User.id == ClassEnrollment.student_id
-        ).join(
-            FaceData, User.id == FaceData.user_id
-        ).filter(
-            ClassEnrollment.class_id == class_id,
-            ClassEnrollment.is_active == True,
-            FaceData.is_active == True,
-            User.is_active == True
-        ).all()
-        
-        if not enrolled_students_data:
-            return jsonify({
-                'success': False,
-                'error': 'No students in this class have registered facial data',
-                'class_id': class_id,
-                'class_name': class_obj.name,
-                'total_faces_detected': len(face_data_list),
-                'recommendation': 'Ask students to register their facial data first'
-            }), 400
-        
-        current_app.logger.info(f"Found {len(enrolled_students_data)} enrolled students with facial data")
-        
-        # Get vector database
-        vector_db = get_vector_db()
-        
-        recognized_students = []
-        student_ids_recognized = set()
-        
-        # Enhanced recognition using script.py approach
-        # script.py uses cosine similarity in [-1, 1] with threshold 0.35
-        # Vector DB uses similarity in [0, 1], so convert threshold: (t + 1) / 2
-        script_threshold = 0.35
-        vector_db_threshold = (script_threshold + 1.0) / 2.0  # ~0.675
-        
-        # Match each detected face with enrolled students
-        for face_data in face_data_list:
-            face_encoding = face_data['embedding']
-            face_number = face_data['face_number']
-            bbox = face_data['bbox']
-            
-            best_match = None
-            best_similarity = 0
-            
-            if vector_db:
-                # Use vector database for efficient matching with script.py threshold
-                try:
-                    # Search for similar faces using script.py approach
-                    matches = vector_db.find_similar_faces(
-                        face_encoding,
-                        top_k=5,
-                        threshold=vector_db_threshold
-                    )
-                    
-                    # Filter matches to only enrolled students in this class
-                    enrolled_ids = {s.id for s in enrolled_students_data}
-                    
-                    for match in matches:
-                        user_id = match.get('user_id')
-                        similarity = match.get('similarity', 0)
-                        
-                        if user_id in enrolled_ids and similarity > best_similarity:
-                            # Avoid duplicate recognition of same student
-                            if user_id not in student_ids_recognized:
-                                best_similarity = similarity
-                                student_info = next((s for s in enrolled_students_data if s.id == user_id), None)
-                                if student_info:
-                                    # Log each potential match with percentage
-                                    try:
-                                        percent = round(float(similarity) * 100.0, 2)
-                                        current_app.logger.info(
-                                            f"Match candidate: user_id={user_id}, name={student_info.first_name} {student_info.last_name}, "
-                                            f"similarity={similarity:.4f} ({percent}%)"
-                                        )
-                                    except Exception:
-                                        pass
-                                    best_match = {
-                                        'student_id': student_info.id,
-                                        'name': f"{student_info.first_name} {student_info.last_name}",
-                                        'email': student_info.email,
-                                        'confidence': similarity,
-                                        'similarity_percentage': round(float(similarity) * 100.0, 2),
-                                        'face_number': face_number,
-                                        'face_location': {
-                                            'x1': int(bbox[0]), 'y1': int(bbox[1]),
-                                            'x2': int(bbox[2]), 'y2': int(bbox[3])
-                                        }
+                # Search for similar faces using script.py approach
+                matches = vector_db.find_similar_faces(
+                    face_encoding,
+                    top_k=5,
+                    threshold=vector_db_threshold
+                )
+                # Filter matches to only enrolled students in this class
+                enrolled_ids = {s.id for s in enrolled_students_data}
+                for match in matches:
+                    user_id = match.get('user_id')
+                    similarity = match.get('similarity', 0)
+                    if user_id in enrolled_ids and similarity > best_similarity:
+                        # Avoid duplicate recognition of same student
+                        if user_id not in student_ids_recognized:
+                            best_similarity = similarity
+                            student_info = next((s for s in enrolled_students_data if s.id == user_id), None)
+                            if student_info:
+                                # Log each potential match with percentage
+                                try:
+                                    percent = round(float(similarity) * 100.0, 2)
+                                    current_app.logger.info(
+                                        f"Match candidate: user_id={user_id}, name={student_info.first_name} {student_info.last_name}, "
+                                        f"similarity={similarity:.4f} ({percent}%)"
+                                    )
+                                except Exception:
+                                    pass
+                                best_match = {
+                                    'student_id': student_info.id,
+                                    'name': f"{student_info.first_name} {student_info.last_name}",
+                                    'email': student_info.email,
+                                    'confidence': similarity,
+                                    'similarity_percentage': round(float(similarity) * 100.0, 2),
+                                    'face_number': face_number,
+                                    'face_location': {
+                                        'x1': int(bbox[0]), 'y1': int(bbox[1]),
+                                        'x2': int(bbox[2]), 'y2': int(bbox[3])
                                     }
-                    
-                except Exception as e:
-                    current_app.logger.error(f"Vector DB search failed: {str(e)}")
-            
-            else:
-                # Fallback: Direct comparison with stored encodings
-                current_app.logger.warning("Vector DB not available, using direct comparison")
-                
-                for student_data in enrolled_students_data:
-                    try:
-                        # This would require storing encodings in FaceData model
-                        # For now, skip if vector DB is not available
-                        pass
-                    except Exception as e:
-                        continue
-            
-            # Add to recognized list if match found
-            if best_match and best_match['student_id'] not in student_ids_recognized:
-                try:
-                    current_app.logger.info(
-                        f"Best match selected for face #{face_number}: student_id={best_match['student_id']}, "
-                        f"name={best_match['name']}, similarity={best_match['confidence']:.4f} "
-                        f"({best_match.get('similarity_percentage', 0)}%)"
-                    )
-                except Exception:
-                    pass
-                recognized_students.append(best_match)
-                student_ids_recognized.add(best_match['student_id'])
+                                }
+            except Exception as e:
+                current_app.logger.error(f"Vector DB search failed: {str(e)}")
+        # Add to recognized list if match found
+        if best_match and best_match['student_id'] not in student_ids_recognized:
+            try:
+                current_app.logger.info(
+                    f"Best match selected for face #{face_number}: student_id={best_match['student_id']}, "
+                    f"name={best_match['name']}, similarity={best_match['confidence']:.4f} "
+                    f"({best_match.get('similarity_percentage', 0)}%)"
+                )
+            except Exception:
+                pass
+            recognized_students.append(best_match)
+            student_ids_recognized.add(best_match['student_id'])
         
         # Calculate statistics
         total_faces_detected = len(face_data_list)
@@ -1878,10 +1796,6 @@ def recognize_students_from_photo():
             'coverage_rate': (total_recognized / total_enrolled_with_data * 100) if total_enrolled_with_data > 0 else 0
         }), 200
         
-    except Exception as e:
-        current_app.logger.error(f"Error in recognize_students_from_photo: {str(e)}")
-        current_app.logger.exception("Full traceback:")
-        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
 
 @face_data_bp.route('/test-recognition', methods=['POST'])
