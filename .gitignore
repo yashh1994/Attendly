@@ -8,6 +8,10 @@
 /Attendance model traning/models/
 /Attendance model traning/teacher/
 
+/model traning/venv/
+/model traning/models/
+/model traning/teacher/
+
 # /Attendance model traning/*.npy
 # /Attendance model traning/*.json
 

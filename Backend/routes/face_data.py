@@ -610,7 +610,9 @@ def upload_face_data_with_orientations():
         # Prepare metadata with per-orientation averages (as lists for JSON)
         orientation_meta = {o: per_orientation_avg[o].tolist() for o in per_orientation_avg}
         encoding_version = get_encoding_version()
-        metadata = {
+        
+        # Metadata for FaceData model (can store complex JSON)
+        full_metadata = {
             'user_id': current_user.id,
             'user_name': f"{current_user.first_name} {current_user.last_name}",
             'email': current_user.email,
@@ -622,23 +624,43 @@ def upload_face_data_with_orientations():
             'per_orientation_embeddings': orientation_meta,
             'created_at': str(datetime.utcnow())
         }
+        
+        # Metadata for Vector DB (only scalar values allowed)
+        vector_db_metadata = {
+            'user_id': current_user.id,
+            'user_name': f"{current_user.first_name} {current_user.last_name}",
+            'email': current_user.email,
+            'encoding_version': encoding_version,
+            'embedding_dimension': embedding_dim,
+            'model_type': 'ArcFace' if ARCFACE_AVAILABLE else 'face_recognition',
+            'upload_method': 'orientation_labeled',
+            'captured_orientations_str': ','.join(captured_orientations),  # Convert list to string
+            'orientation_count': len(captured_orientations),
+            'created_at': str(datetime.utcnow())
+        }
 
         vector_db_id = None
         if vector_db:
             try:
+                current_app.logger.debug(f"Storing face encoding in vector DB for user {current_user.id}")
                 if existing_face_data and existing_face_data.vector_db_id:
-                    success = vector_db.update_face_encoding(current_user.id, global_avg, metadata)
+                    success = vector_db.update_face_encoding(current_user.id, global_avg, vector_db_metadata)
                     vector_db_id = existing_face_data.vector_db_id
                     if not success:
-                        vector_db_id = vector_db.add_face_encoding(current_user.id, global_avg, metadata)
+                        current_app.logger.debug("Update failed, adding new encoding")
+                        vector_db_id = vector_db.add_face_encoding(current_user.id, global_avg, vector_db_metadata)
+                    else:
+                        current_app.logger.debug("Successfully updated existing encoding in vector DB")
                 else:
-                    vector_db_id = vector_db.add_face_encoding(current_user.id, global_avg, metadata)
+                    vector_db_id = vector_db.add_face_encoding(current_user.id, global_avg, vector_db_metadata)
+                    current_app.logger.debug(f"Successfully added new encoding to vector DB with ID: {vector_db_id}")
             except Exception as e:
                 current_app.logger.warning(f"Vector DB operation failed: {e}")
+                current_app.logger.debug(f"Vector DB metadata that failed: {vector_db_metadata}")
 
         if existing_face_data:
             existing_face_data.vector_db_id = vector_db_id
-            existing_face_data.encoding_metadata = metadata
+            existing_face_data.encoding_metadata = full_metadata
             existing_face_data.encoding_version = encoding_version
             db.session.commit()
             face_data_row = existing_face_data
@@ -646,38 +668,23 @@ def upload_face_data_with_orientations():
             face_data_row = FaceData(
                 user_id=current_user.id,
                 vector_db_id=vector_db_id,
-                encoding_metadata=metadata,
+                encoding_metadata=full_metadata,
                 encoding_version=encoding_version
             )
             db.session.add(face_data_row)
             db.session.commit()
 
-        missing_orientations = [o for o in allowed_orientations if o not in captured_orientations]
-
+        # Success! All orientations captured and face data stored
         return jsonify({
-            'success': False,
-            'message': 'Face data upload failed due to missing orientations or processing error',
-            'missing_orientations': missing_orientations,
-            'errors': errors
-        }), 400
-        
-        if not face_data:
-            return jsonify({
-                'message': 'No face data found',
-                'has_face_data': False,
-                'vector_db_enabled': vector_db is not None,
-                'vector_db_status': vector_db_status
-            }), 200
-        
-        response_data = face_data.to_dict()
-        response_data.update({
-            'has_face_data': True,
+            'success': True,
+            'message': f'Face data uploaded successfully with {len(captured_orientations)} orientations',
+            'face_data_id': face_data_row.id,
+            'captured_orientations': captured_orientations,
+            'embedding_dimension': embedding_dim,
+            'encoding_version': encoding_version,
             'vector_db_enabled': vector_db is not None,
-            'vector_db_status': vector_db_status
-        })
-        
-        return jsonify({
-            'face_data': response_data
+            'processed_images': len(processed),
+            'errors': errors if errors else []
         }), 200
         
     except Exception as e:
