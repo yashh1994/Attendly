@@ -95,7 +95,8 @@ def extract_arcface_embedding(image_array: np.ndarray, return_largest: bool = Tr
             logger.warning(f"ArcFace detection failed: {e}")
             faces = []
 
-        if not faces:
+        # Safe check for empty faces list/array - avoid boolean evaluation of numpy arrays
+        if faces is None or (hasattr(faces, '__len__') and len(faces) == 0):
             logger.debug("No face detected in image")
             return None
         
@@ -417,7 +418,12 @@ def detect_faces_batch(image_array: np.ndarray) -> List[Dict]:
             faces = []
 
         face_data = []
-        for idx, face in enumerate(faces or []):
+        # Handle faces array safely - avoid direct boolean evaluation of numpy arrays
+        faces_list = faces if faces is not None else []
+        if hasattr(faces_list, '__len__') and len(faces_list) == 0:
+            faces_list = []
+        
+        for idx, face in enumerate(faces_list):
             # Retrieve embedding safely and convert to numpy array
             embedding = getattr(face, 'normed_embedding', None) or getattr(face, 'embedding', None)
 
