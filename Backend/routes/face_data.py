@@ -1640,6 +1640,21 @@ def recognize_students_from_photo():
     try:
         image_array = decode_base64_image(data['image'])
         current_app.logger.info(f"Processing classroom photo for class {class_id} by teacher {current_user.id}")
+        
+        # Save the classroom photo for testing purposes (overwrite each time)
+        test_image_path = os.path.join('uploads', 'last_classroom_photo.jpg')
+        os.makedirs('uploads', exist_ok=True)
+        
+        try:
+            from PIL import Image
+            # Convert numpy array back to PIL Image and save
+            if len(image_array.shape) == 3:
+                img = Image.fromarray(image_array)
+                img.save(test_image_path, 'JPEG', quality=95)
+                current_app.logger.info(f"📸 Saved classroom photo to {test_image_path} for testing")
+        except Exception as save_e:
+            current_app.logger.warning(f"Could not save test image: {save_e}")
+            
     except ValueError as e:
         return jsonify({'error': f'Invalid image: {str(e)}'}), 400
 
