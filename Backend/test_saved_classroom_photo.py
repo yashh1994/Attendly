@@ -69,6 +69,12 @@ def test_arcface_detection_directly(image_array):
     print("="*50)
     
     try:
+        # Set up logging to see debug messages
+        import logging
+        logging.basicConfig(level=logging.DEBUG)
+        logger = logging.getLogger('services.arcface_service')
+        logger.setLevel(logging.DEBUG)
+        
         # Import ArcFace service
         from services.arcface_service import detect_faces_batch, initialize_arcface
         
