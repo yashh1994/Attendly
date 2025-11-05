@@ -403,6 +403,7 @@ def mark_attendance():
         
         session_id = data['session_id']
         student_ids = data['student_ids']
+        status = data.get('status', 'present')  # Get status from request
         recognition_method = data.get('recognition_method', 'manual')
         confidence_scores = data.get('confidence_scores', {})  # Optional confidence scores
         
@@ -453,7 +454,7 @@ def mark_attendance():
             attendance_record = AttendanceRecord(
                 session_id=session_id,
                 student_id=student_id,
-                status='present',
+                status=status,  # Use the status from the request
                 marked_by=current_user.id,
                 recognition_method=recognition_method,
                 recognition_confidence=confidence
@@ -463,7 +464,7 @@ def mark_attendance():
             marked_students.append({
                 'student_id': student_id,
                 'student_name': f"{enrollment.student.first_name} {enrollment.student.last_name}",
-                'status': 'present',
+                'status': status,  # Use the actual status
                 'confidence': confidence,
                 'recognition_method': recognition_method
             })
@@ -474,7 +475,7 @@ def mark_attendance():
         db.session.commit()
         
         return jsonify({
-            'message': f'Attendance marked for {len(marked_students)} students',
+            'message': f'Attendance marked for {len(marked_students)} students as {status}',
             'session_id': session_id,
             'session_name': session.session_name,
             'marked_students': marked_students,

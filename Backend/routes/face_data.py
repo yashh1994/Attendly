@@ -91,9 +91,9 @@ def decode_base64_image(base64_string):
         if image_array.shape[0] < 100 or image_array.shape[1] < 100:
             raise ValueError(f"Image too small: {image_array.shape}")
         
-        # Normalize image to reduce camera quality differences
-        # This helps recognition work across front/back cameras
-        image_array = normalize_image_for_recognition(image_array)
+        # Skip normalization to maintain highest accuracy (like simple_face_test.py)
+        # The normalize_image_for_recognition was reducing accuracy from 0.87 to 0.60
+        # image_array = normalize_image_for_recognition(image_array)
         
         return image_array
     except Exception as e:
@@ -1658,19 +1658,56 @@ def recognize_students_from_photo():
     except ValueError as e:
         return jsonify({'error': f'Invalid image: {str(e)}'}), 400
 
-    # Extract all faces from the image using enhanced ArcFace approach (script.py style)
-    current_app.logger.info(f"Extracting faces from classroom photo using enhanced ArcFace 512D...")
+    # Extract all faces from the image using direct ArcFace approach (same as simple_face_test.py)
+    current_app.logger.info(f"Extracting faces from classroom photo using direct ArcFace detection...")
 
-    # Use enhanced ArcFace batch detection
+    # Use direct ArcFace detection (same as simple_face_test.py for maximum accuracy)
     face_data_list = []
     if ARCFACE_AVAILABLE:
         try:
-            # Use the enhanced batch face detection from arcface_service
-            from services.arcface_service import detect_faces_batch
-            face_data_list = detect_faces_batch(image_array)
-            current_app.logger.info(f"✅ Detected {len(face_data_list)} faces using enhanced ArcFace detection")
+            # Convert RGB to BGR for ArcFace (same as simple_face_test.py)
+            import cv2
+            from insightface.app import FaceAnalysis
+            
+            # Convert to BGR format for ArcFace
+            image_bgr = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+            current_app.logger.info(f"Converted image to BGR for ArcFace: {image_bgr.shape}")
+            
+            # Initialize ArcFace app (same configuration as simple_face_test.py)
+            app = FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider'], allowed_modules=['detection','recognition'])
+            app.prepare(ctx_id=0, det_size=(640,640))
+            
+            # Detect faces
+            faces = app.get(image_bgr)
+            current_app.logger.info(f"✅ Detected {len(faces)} faces using direct ArcFace detection")
+            
+            # Convert to our format (same as simple_face_test.py)
+            for i, face in enumerate(faces, start=1):
+                # Get embedding (same as simple_face_test.py)
+                emb = getattr(face, 'normed_embedding', None)
+                if emb is None:
+                    emb = getattr(face, 'embedding', None)
+                
+                if emb is not None:
+                    emb_arr = np.asarray(emb, dtype=np.float32)
+                    # Normalize (same as simple_face_test.py)
+                    e_norm = np.linalg.norm(emb_arr)
+                    if e_norm > 0:
+                        emb_arr = emb_arr / e_norm
+                    
+                    # Get bounding box
+                    bbox = face.bbox.astype(int)
+                    
+                    face_data_list.append({
+                        'embedding': emb_arr,
+                        'face_number': i,
+                        'bbox': [int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])],
+                        'embedding_dimension': len(emb_arr),
+                        'detection_score': float(face.det_score) if hasattr(face, 'det_score') else 1.0
+                    })
+                    
         except Exception as e:
-            current_app.logger.error(f"Enhanced ArcFace face detection failed: {e}, skipping detection.")
+            current_app.logger.error(f"Direct ArcFace face detection failed: {e}, falling back to service.")
 
     # Do NOT fall back to legacy 128D encodings; they are incompatible with 512D vector DB
     # If ArcFace failed to detect faces, return early with zero detected to avoid false matches
@@ -1739,44 +1776,92 @@ def recognize_students_from_photo():
 
         if vector_db:
             try:
-                # Search for similar faces using script.py approach
-                matches = vector_db.find_similar_faces(
-                    face_encoding,
-                    top_k=5,
-                    threshold=vector_db_threshold
-                )
-                # Filter matches to only enrolled students in this class
-                enrolled_ids = {s.id for s in enrolled_students_data}
-                for match in matches:
-                    user_id = match.get('user_id')
-                    similarity = match.get('similarity', 0)
-                    if user_id in enrolled_ids and similarity > best_similarity:
-                        # Avoid duplicate recognition of same student
-                        if user_id not in student_ids_recognized:
-                            best_similarity = similarity
-                            student_info = next((s for s in enrolled_students_data if s.id == user_id), None)
-                            if student_info:
-                                # Log each potential match with percentage
-                                try:
-                                    percent = round(float(similarity) * 100.0, 2)
-                                    current_app.logger.info(
-                                        f"Match candidate: user_id={user_id}, name={student_info.first_name} {student_info.last_name}, "
-                                        f"similarity={similarity:.4f} ({percent}%)"
-                                    )
-                                except Exception:
-                                    pass
-                                best_match = {
-                                    'student_id': student_info.id,
-                                    'name': f"{student_info.first_name} {student_info.last_name}",
-                                    'email': student_info.email,
-                                    'confidence': similarity,
-                                    'similarity_percentage': round(float(similarity) * 100.0, 2),
-                                    'face_number': face_number,
-                                    'face_location': {
-                                        'x1': int(bbox[0]), 'y1': int(bbox[1]),
-                                        'x2': int(bbox[2]), 'y2': int(bbox[3])
+                # Use direct ChromaDB access for maximum accuracy (same as simple_face_test.py)
+                if hasattr(vector_db, 'db') and hasattr(vector_db.db, 'collection'):
+                    collection = vector_db.db.collection
+                    all_data = collection.get(include=["embeddings", "metadatas"])
+                    
+                    # Check if we have embeddings (avoid array boolean evaluation)
+                    embeddings = all_data['embeddings']
+                    if embeddings is not None and (hasattr(embeddings, '__len__') and len(embeddings) > 0):
+                        # Direct similarity computation (same as simple_face_test.py)
+                        enrolled_ids = {s.id for s in enrolled_students_data}
+                        
+                        for idx, stored_embedding in enumerate(embeddings):
+                            metadata = all_data['metadatas'][idx] if all_data['metadatas'] else {}
+                            stored_user_id = metadata.get('user_id')
+                            
+                            # Only check enrolled students (ensure user_id is not an array)
+                            if stored_user_id is not None and stored_user_id in enrolled_ids:
+                                # Convert to numpy and normalize (same as simple_face_test.py)
+                                ref_vec = np.array(stored_embedding, dtype=np.float32)
+                                ref_norm = np.linalg.norm(ref_vec)
+                                if ref_norm > 0:
+                                    ref_vec = ref_vec / ref_norm
+                                
+                                # Ensure same dimension (check both are valid arrays)
+                                if (hasattr(face_encoding, 'shape') and hasattr(ref_vec, 'shape') and 
+                                    face_encoding.shape[0] == ref_vec.shape[0]):
+                                    try:
+                                        # Compute cosine similarity (same as simple_face_test.py)
+                                        similarity = float(np.dot(ref_vec, face_encoding))
+                                        
+                                        if similarity > best_similarity and similarity >= vector_db_threshold:
+                                            # Avoid duplicate recognition
+                                            if stored_user_id not in student_ids_recognized:
+                                                best_similarity = similarity
+                                                student_info = next((s for s in enrolled_students_data if s.id == stored_user_id), None)
+                                                if student_info:
+                                                    # Log match (same format as simple_face_test.py)
+                                                    current_app.logger.info(
+                                                        f"Face {face_number}: similarity = {similarity:.4f} with {student_info.first_name} {student_info.last_name}"
+                                                    )
+                                                    
+                                                    best_match = {
+                                                        'student_id': student_info.id,
+                                                        'name': f"{student_info.first_name} {student_info.last_name}",
+                                                        'email': student_info.email,
+                                                        'confidence': similarity,
+                                                        'similarity_percentage': round(float(similarity) * 100.0, 2),
+                                                        'face_number': face_number,
+                                                        'face_location': {
+                                                            'x1': int(bbox[0]), 'y1': int(bbox[1]),
+                                                            'x2': int(bbox[2]), 'y2': int(bbox[3])
+                                                        }
+                                                    }
+                                    except Exception as sim_e:
+                                        current_app.logger.warning(f"Similarity computation failed for user {stored_user_id}: {sim_e}")
+                                        continue
+                else:
+                    # Fallback to original method if direct access fails
+                    matches = vector_db.find_similar_faces(
+                        face_encoding,
+                        top_k=5,
+                        threshold=vector_db_threshold
+                    )
+                    # Filter matches to only enrolled students in this class
+                    enrolled_ids = {s.id for s in enrolled_students_data}
+                    for match in matches:
+                        user_id = match.get('user_id')
+                        similarity = match.get('similarity', 0)
+                        if user_id in enrolled_ids and similarity > best_similarity:
+                            if user_id not in student_ids_recognized:
+                                best_similarity = similarity
+                                student_info = next((s for s in enrolled_students_data if s.id == user_id), None)
+                                if student_info:
+                                    best_match = {
+                                        'student_id': student_info.id,
+                                        'name': f"{student_info.first_name} {student_info.last_name}",
+                                        'email': student_info.email,
+                                        'confidence': similarity,
+                                        'similarity_percentage': round(float(similarity) * 100.0, 2),
+                                        'face_number': face_number,
+                                        'face_location': {
+                                            'x1': int(bbox[0]), 'y1': int(bbox[1]),
+                                            'x2': int(bbox[2]), 'y2': int(bbox[3])
+                                        }
                                     }
-                                }
+                                    
             except Exception as e:
                 current_app.logger.error(f"Vector DB search failed: {str(e)}")
         # Add to recognized list if match found
