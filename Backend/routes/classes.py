@@ -190,6 +190,10 @@ def join_class():
             else:
                 # Reactivate enrollment
                 existing_enrollment.is_active = True
+                
+                # Update class student count
+                class_obj.update_student_count()
+                
                 db.session.commit()
                 print(f"✅ Student {current_user.email} rejoined class: {class_obj.name}")
                 return jsonify({
@@ -204,6 +208,10 @@ def join_class():
         )
         
         db.session.add(enrollment)
+        
+        # Update class student count
+        class_obj.update_student_count()
+        
         db.session.commit()
         
         print(f"✅ Student {current_user.email} successfully joined class: {class_obj.name}")
@@ -394,4 +402,132 @@ def regenerate_join_code(class_id):
         
     except Exception as e:
         db.session.rollback()
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+@classes_bp.route('/dashboard-stats', methods=['GET'])
+@jwt_required()
+def get_teacher_dashboard_stats():
+    """Get teacher dashboard statistics"""
+    try:
+        from models.models import AttendanceSession, AttendanceRecord
+        from sqlalchemy import func, and_
+        from datetime import datetime, date
+        
+        current_user = get_current_user()
+        
+        if not current_user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        if current_user.role != 'teacher':
+            return jsonify({'error': 'Only teachers can access dashboard stats'}), 403
+        
+        # Get teacher's classes
+        teacher_classes = Class.query.filter_by(
+            teacher_id=current_user.id,
+            is_active=True
+        ).all()
+        
+        # Calculate total classes
+        total_classes = len(teacher_classes)
+        print(f'🔥 BACKEND: Teacher {current_user.id} has {total_classes} classes: {[c.id for c in teacher_classes]}')
+        
+        # Calculate total students across all classes by counting active enrollments
+        total_students = db.session.query(func.count(ClassEnrollment.id)).join(Class).filter(
+            Class.teacher_id == current_user.id,
+            Class.is_active == True,
+            ClassEnrollment.is_active == True
+        ).scalar() or 0
+        
+        print(f'🔥 BACKEND: Total students calculated: {total_students}')
+        
+        # Debug: Get detailed enrollment info
+        enrollments = db.session.query(ClassEnrollment).join(Class).filter(
+            Class.teacher_id == current_user.id,
+            Class.is_active == True,
+            ClassEnrollment.is_active == True
+        ).all()
+        
+        print(f'🔥 BACKEND: Found {len(enrollments)} active enrollments:')
+        for enrollment in enrollments:
+            print(f'  - Class {enrollment.class_id}: Student {enrollment.student_id}')
+        
+        # Get today's sessions
+        today = date.today()
+        today_sessions = AttendanceSession.query.join(Class).filter(
+            Class.teacher_id == current_user.id,
+            func.date(AttendanceSession.session_date) == today,
+            AttendanceSession.is_active == True
+        ).count()
+        
+        # Calculate average attendance rate
+        # Get all attendance records for teacher's classes
+        attendance_stats = db.session.query(
+            func.avg(
+                func.cast(AttendanceSession.present_count, db.Float) / 
+                func.nullif(AttendanceSession.total_students, 0) * 100
+            ).label('avg_attendance')
+        ).join(Class).filter(
+            Class.teacher_id == current_user.id,
+            AttendanceSession.total_students > 0,
+            AttendanceSession.is_active == True
+        ).first()
+        
+        avg_attendance = round(attendance_stats.avg_attendance or 0, 1) if attendance_stats.avg_attendance else 0
+        
+        # Get recent activity (last 7 days of sessions)
+        from datetime import timedelta
+        week_ago = today - timedelta(days=7)
+        
+        recent_sessions = AttendanceSession.query.join(Class).filter(
+            Class.teacher_id == current_user.id,
+            AttendanceSession.session_date >= week_ago,
+            AttendanceSession.is_active == True
+        ).order_by(AttendanceSession.session_date.desc()).limit(5).all()
+        
+        recent_activity = []
+        for session in recent_sessions:
+            recent_activity.append({
+                'id': session.id,
+                'class_name': session.class_ref.name,
+                'session_name': session.session_name,
+                'date': session.session_date.isoformat(),
+                'present_count': session.present_count,
+                'total_students': session.total_students,
+                'attendance_rate': round((session.present_count / session.total_students * 100) if session.total_students > 0 else 0, 1)
+            })
+        
+        # Debug information
+        debug_info = {
+            'teacher_classes_count': len(teacher_classes),
+            'class_names': [c.name for c in teacher_classes],
+            'individual_student_counts': [c.student_count for c in teacher_classes]
+        }
+        
+        result = {
+            'statistics': {
+                'total_classes': total_classes,
+                'total_students': total_students,
+                'todays_sessions': today_sessions,
+                'avg_attendance_rate': avg_attendance
+            },
+            'recent_activity': recent_activity,
+            'debug': {
+                'teacher_id': current_user.id,
+                'teacher_name': f'{current_user.first_name} {current_user.last_name}',
+                'teacher_classes_count': len(teacher_classes),
+                'class_names': [c.name for c in teacher_classes],
+                'individual_student_counts': [c.student_count for c in teacher_classes],
+                'enrollment_count': len(enrollments)
+            },
+            'summary': {
+                'message': f'Dashboard stats for {current_user.first_name} {current_user.last_name}',
+                'generated_at': datetime.utcnow().isoformat()
+            }
+        }
+        
+        print(f'🔥 BACKEND: Final dashboard response: {result}')
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
