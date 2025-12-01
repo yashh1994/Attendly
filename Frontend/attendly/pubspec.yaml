@@ -1,5 +1,5 @@
 name: attendly
-description: "A new Flutter project."
+description: "Attendly — AI-powered attendance app with ArcFace face recognition, class & session management, real-time reporting, and secure mobile login."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -71,6 +71,7 @@ dependencies:
   # Utils
   intl: ^0.19.0
   uuid: ^4.1.0
+  change_app_package_name: ^1.5.0
 
 dev_dependencies:
   flutter_test:

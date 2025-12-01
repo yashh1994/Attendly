@@ -194,72 +194,74 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
   }
 
   Widget _buildCalendarTab() {
-    return Column(
-      children: [
-        Card(
-          margin: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              TableCalendar<AttendanceSession>(
-                firstDay: DateTime.utc(2020, 1, 1),
-                lastDay: DateTime.utc(2030, 12, 31),
-                focusedDay: _focusedDay,
-                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                eventLoader: _getSessionsForDay,
-                startingDayOfWeek: StartingDayOfWeek.monday,
-                calendarStyle: CalendarStyle(
-                  outsideDaysVisible: false,
-                  weekendTextStyle: const TextStyle(color: Colors.grey),
-                  holidayTextStyle: const TextStyle(color: Colors.red),
-                  markerDecoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    shape: BoxShape.circle,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Card(
+            child: Column(
+              children: [
+                TableCalendar<AttendanceSession>(
+                  firstDay: DateTime.utc(2020, 1, 1),
+                  lastDay: DateTime.utc(2030, 12, 31),
+                  focusedDay: _focusedDay,
+                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                  eventLoader: _getSessionsForDay,
+                  startingDayOfWeek: StartingDayOfWeek.monday,
+                  calendarStyle: CalendarStyle(
+                    outsideDaysVisible: false,
+                    weekendTextStyle: const TextStyle(color: Colors.grey),
+                    holidayTextStyle: const TextStyle(color: Colors.red),
+                    markerDecoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                    leftChevronIcon: Icon(Icons.chevron_left),
+                    rightChevronIcon: Icon(Icons.chevron_right),
+                  ),
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _selectedDay = selectedDay;
+                      _focusedDay = focusedDay;
+                    });
+                  },
+                  calendarBuilders: CalendarBuilders(
+                    markerBuilder: (context, day, events) {
+                      if (events.isNotEmpty) {
+                        return Positioned(
+                          bottom: 1,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: _getAttendanceColor(day),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        );
+                      }
+                      return null;
+                    },
                   ),
                 ),
-                headerStyle: const HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                  leftChevronIcon: Icon(Icons.chevron_left),
-                  rightChevronIcon: Icon(Icons.chevron_right),
-                ),
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
-                },
-                calendarBuilders: CalendarBuilders(
-                  markerBuilder: (context, day, events) {
-                    if (events.isNotEmpty) {
-                      return Positioned(
-                        bottom: 1,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: _getAttendanceColor(day),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      );
-                    }
-                    return null;
-                  },
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        Expanded(child: _buildSelectedDayDetails()),
-      ],
+          const SizedBox(height: 16),
+          _buildSelectedDayDetailsScrollable(),
+        ],
+      ),
     );
   }
 
-  Widget _buildSelectedDayDetails() {
+  Widget _buildSelectedDayDetailsScrollable() {
     final sessions = _getSessionsForDay(_selectedDay);
 
     return Card(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -281,7 +283,8 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
           ),
           const Divider(),
           if (sessions.isEmpty)
-            Expanded(
+            Container(
+              height: 200,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -311,23 +314,25 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
               ),
             )
           else
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: sessions.length,
-                itemBuilder: (context, index) {
-                  final session = sessions[index];
-                  return AnimationConfiguration.staggeredList(
-                    position: index,
-                    duration: const Duration(milliseconds: 375),
-                    child: SlideAnimation(
-                      verticalOffset: 50.0,
-                      child: FadeInAnimation(child: _buildSessionCard(session)),
-                    ),
-                  );
-                },
-              ),
-            ),
+            ...sessions.asMap().entries.map((entry) {
+              final index = entry.key;
+              final session = entry.value;
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                child: AnimationConfiguration.staggeredList(
+                  position: index,
+                  duration: const Duration(milliseconds: 375),
+                  child: SlideAnimation(
+                    verticalOffset: 50.0,
+                    child: FadeInAnimation(child: _buildSessionCard(session)),
+                  ),
+                ),
+              );
+            }).toList(),
+          const SizedBox(height: 16), // Bottom padding for scrolling
         ],
       ),
     );

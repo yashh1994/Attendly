@@ -403,6 +403,49 @@ class VectorDBService:
         elif self.db_type == "faiss":
             index_path = kwargs.get('index_path', os.getenv('FAISS_INDEX_PATH', './vector_db/faiss_index.pkl'))
             self.db = FAISSVectorDB(index_path=index_path)
+        elif self.db_type == "firestore":
+            # Firestore backend: dynamically import the Firestore implementation.
+            collection_name = kwargs.get('collection_name', os.getenv('FIRESTORE_COLLECTION', 'face_encodings'))
+            project = kwargs.get('project', os.getenv('GOOGLE_CLOUD_PROJECT'))
+            try:
+                # Try import relative to services package or module path
+                try:
+                    from vector_db_firestore import FirestoreVectorDB
+                except Exception:
+                    from services.vector_db_firestore import FirestoreVectorDB
+
+                self.db = FirestoreVectorDB(collection_name=collection_name, project=project)
+            except Exception as e:
+                # Prefer a graceful fallback rather than hard failing.
+                fallback = os.getenv('VECTOR_DB_FALLBACK', 'chroma').lower()
+                print(f"Warning: Firestore backend requested but unavailable: {e}")
+                print(f"Attempting to fall back to '{fallback}' backend. Set VECTOR_DB_FALLBACK to change this.")
+
+                if fallback == 'faiss':
+                    try:
+                        index_path = kwargs.get('index_path', os.getenv('FAISS_INDEX_PATH', './vector_db/faiss_index.pkl'))
+                        self.db = FAISSVectorDB(index_path=index_path)
+                    except Exception as e2:
+                        print(f"Failed to initialize FAISS fallback: {e2}")
+                        # try chroma next
+                        try:
+                            persist_dir = kwargs.get('persist_directory', os.getenv('CHROMA_PERSIST_DIRECTORY', './vector_db/chroma'))
+                            self.db = ChromaVectorDB(persist_directory=persist_dir)
+                        except Exception as e3:
+                            raise ImportError("Firestore requested and all fallbacks failed. Install required clients and check configuration.") from e3
+                else:
+                    # default chroma fallback
+                    try:
+                        persist_dir = kwargs.get('persist_directory', os.getenv('CHROMA_PERSIST_DIRECTORY', './vector_db/chroma'))
+                        self.db = ChromaVectorDB(persist_directory=persist_dir)
+                    except Exception as e2:
+                        print(f"Failed to initialize Chroma fallback: {e2}")
+                        # try faiss next
+                        try:
+                            index_path = kwargs.get('index_path', os.getenv('FAISS_INDEX_PATH', './vector_db/faiss_index.pkl'))
+                            self.db = FAISSVectorDB(index_path=index_path)
+                        except Exception as e3:
+                            raise ImportError("Firestore requested and all fallbacks failed. Install required clients and check configuration.") from e3
         else:
             raise ValueError(f"Unsupported vector database type: {db_type}")
     
@@ -437,6 +480,11 @@ class VectorDBService:
             elif self.db_type == "faiss":
                 count = self.db.index.ntotal if self.db.index else 0
                 dimension = 512  # ArcFace dimension
+            elif self.db_type == "firestore":
+                # Firestore implementation provides its own get_stats()
+                stats = self.db.get_stats()
+                count = stats.get('total_encodings', 0)
+                dimension = stats.get('encoding_dimension', 512)
             else:
                 count = 0
                 dimension = 512
