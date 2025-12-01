@@ -254,6 +254,30 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getTeacherDashboardStats() async {
+    print('🔥 FLUTTER: Getting teacher dashboard statistics');
+    print('🔥 FLUTTER: URL: $baseUrl/api/classes/dashboard-stats');
+    print('🔥 FLUTTER: Headers: $headers');
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/classes/dashboard-stats'),
+        headers: headers,
+      );
+
+      print(
+        '🔥 FLUTTER: Dashboard stats response status: ${response.statusCode}',
+      );
+      print('🔥 FLUTTER: Dashboard stats response body: ${response.body}');
+
+      final data = _handleResponse(response);
+      return data;
+    } catch (e) {
+      print('🔥 FLUTTER: Exception in getTeacherDashboardStats: $e');
+      rethrow;
+    }
+  }
+
   Future<ClassModel> getClassDetail(int classId) async {
     print('🔥 FLUTTER: Getting class detail for ID: $classId');
     print('🔥 FLUTTER: URL: $baseUrl/api/classes/$classId');

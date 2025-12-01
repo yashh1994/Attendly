@@ -71,18 +71,98 @@ def reset_database(create_sample_data=False):
             print(f"   ❌ Error creating schema: {e}")
             return
         
-        # Step 3: Clear ChromaDB vector database
+        # Step 3: Clear vector database depending on configured backend
         print("\n3️⃣  Clearing vector database...")
         try:
-            # Delete the ChromaDB directory
-            chroma_path = os.path.join(os.path.dirname(__file__), 'vector_db', 'chroma')
-            if os.path.exists(chroma_path):
-                shutil.rmtree(chroma_path)
-                print(f"   ✅ ChromaDB directory deleted: {chroma_path}")
-            
-            # Recreate the collection
-            vector_db = get_vector_db_service()
-            print("   ✅ Vector database collection recreated")
+            db_type = os.getenv('VECTOR_DB_TYPE', 'chroma').lower()
+            fallback = os.getenv('VECTOR_DB_FALLBACK', 'chroma').lower()
+
+            def clear_chroma():
+                chroma_path = os.path.join(os.path.dirname(__file__), 'vector_db', 'chroma')
+                if os.path.exists(chroma_path):
+                    shutil.rmtree(chroma_path)
+                    print(f"   ✅ ChromaDB directory deleted: {chroma_path}")
+                else:
+                    print(f"   ℹ️  ChromaDB directory not found: {chroma_path}")
+
+            def clear_faiss():
+                faiss_path = os.path.join(os.path.dirname(__file__), 'vector_db', 'faiss_index.pkl')
+                meta_path = faiss_path.replace('.pkl', '_metadata.json')
+                removed = False
+                if os.path.exists(faiss_path):
+                    os.remove(faiss_path)
+                    print(f"   ✅ FAISS index removed: {faiss_path}")
+                    removed = True
+                if os.path.exists(meta_path):
+                    os.remove(meta_path)
+                    print(f"   ✅ FAISS metadata removed: {meta_path}")
+                    removed = True
+                if not removed:
+                    print(f"   ℹ️  FAISS index not found: {faiss_path}")
+
+            def clear_firestore():
+                # Delete all documents in the configured Firestore collection
+                try:
+                    # Try local module first
+                    try:
+                        from services.vector_db_firestore import FirestoreVectorDB
+                    except Exception:
+                        from vector_db_firestore import FirestoreVectorDB
+
+                    collection_name = os.getenv('FIRESTORE_COLLECTION', 'face_encodings')
+                    project = os.getenv('GOOGLE_CLOUD_PROJECT') or None
+                    fdb = FirestoreVectorDB(collection_name=collection_name, project=project)
+                    docs = list(fdb.collection.stream())
+                    if not docs:
+                        print(f"   ℹ️  Firestore collection '{collection_name}' is already empty")
+                        return
+                    for d in docs:
+                        try:
+                            fdb.collection.document(d.id).delete()
+                        except Exception as dd:
+                            print(f"   ⚠️  Failed to delete document {d.id}: {dd}")
+                    print(f"   ✅ Firestore collection '{collection_name}' cleared ({len(docs)} documents)")
+                except Exception as e:
+                    raise
+
+            # Perform clearing based on primary db_type; try fallbacks on failure
+            if db_type == 'firestore':
+                try:
+                    clear_firestore()
+                except Exception as e:
+                    print(f"   ⚠️  Firestore clear failed: {e}")
+                    if fallback == 'faiss':
+                        print("   ℹ️  Falling back to FAISS clear")
+                        clear_faiss()
+                    else:
+                        print("   ℹ️  Falling back to Chroma clear")
+                        clear_chroma()
+            elif db_type == 'faiss':
+                try:
+                    clear_faiss()
+                except Exception as e:
+                    print(f"   ⚠️  FAISS clear failed: {e}")
+                    print("   ℹ️  Falling back to Chroma clear")
+                    clear_chroma()
+            else:
+                # Default to chroma
+                try:
+                    clear_chroma()
+                except Exception as e:
+                    print(f"   ⚠️  Chroma clear failed: {e}")
+                    print("   ℹ️  Trying FAISS clear as last resort")
+                    try:
+                        clear_faiss()
+                    except Exception as e2:
+                        print(f"   ⚠️  FAISS clear also failed: {e2}")
+
+            # Recreate or reinitialize vector DB service (best-effort)
+            try:
+                vector_db = get_vector_db_service()
+                print("   ✅ Vector database service initialized")
+            except Exception as e:
+                print(f"   ⚠️  Vector DB service initialization failed after clear: {e}")
+                print("   ℹ️  You may need to check VECTOR_DB_TYPE, credentials, and installed packages.")
         except Exception as e:
             print(f"   ⚠️  Error clearing vector database: {e}")
         

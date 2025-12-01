@@ -25,10 +25,17 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   bool _isLoading = false;
   String? _error;
 
+  // Dashboard statistics
+  int _totalClasses = 0;
+  int _totalStudents = 0;
+  int _todaysSessions = 0;
+  double _avgAttendance = 0.0;
+
   @override
   void initState() {
     super.initState();
     _loadCreatedClasses();
+    _loadDashboardStats();
   }
 
   @override
@@ -79,6 +86,52 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
     }
   }
 
+  Future<void> _loadDashboardStats() async {
+    try {
+      // Get token from auth provider and set in API service
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.token != null) {
+        _apiService.setToken(authProvider.token);
+        print('🔥 FLUTTER: Token set for dashboard stats API call');
+      } else {
+        print('🔥 FLUTTER: ERROR - No token available for dashboard stats');
+        return;
+      }
+
+      print('🔥 FLUTTER: Loading dashboard statistics from API...');
+      final statsData = await _apiService.getTeacherDashboardStats();
+      
+      print('🔥 FLUTTER: Raw stats data received: $statsData');
+
+      if (statsData['statistics'] != null) {
+        final stats = statsData['statistics'];
+        print('🔥 FLUTTER: Statistics object: $stats');
+        
+        final totalClasses = stats['total_classes'] ?? 0;
+        final totalStudents = stats['total_students'] ?? 0;
+        final todaysSessions = stats['todays_sessions'] ?? 0;
+        final avgAttendance = (stats['avg_attendance_rate'] ?? 0.0).toDouble();
+        
+        print('🔥 FLUTTER: Parsed values - Classes: $totalClasses, Students: $totalStudents, Today: $todaysSessions, Avg: $avgAttendance');
+        
+        setState(() {
+          _totalClasses = totalClasses;
+          _totalStudents = totalStudents;
+          _todaysSessions = todaysSessions;
+          _avgAttendance = avgAttendance;
+        });
+
+        print('🔥 FLUTTER: State updated - Classes: $_totalClasses, Students: $_totalStudents, Today: $_todaysSessions, Avg: $_avgAttendance%');
+      } else {
+        print('🔥 FLUTTER: ERROR - No statistics object in response');
+      }
+    } catch (e) {
+      print('🔥 FLUTTER: Error loading dashboard stats: $e');
+      print('🔥 FLUTTER: Error type: ${e.runtimeType}');
+      // Don't show error to user for stats, just use default values
+    }
+  }
+
   Future<void> _createClass() async {
     final className = _classNameController.text.trim();
     final description = _descriptionController.text.trim();
@@ -118,8 +171,9 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         ),
       );
 
-      // Reload the classes list
+      // Reload the classes list and stats
       _loadCreatedClasses();
+      _loadDashboardStats();
     } catch (e) {
       print('🔥 FLUTTER: Error creating class: $e');
       setState(() {
@@ -155,9 +209,10 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
 
       print('🔥 FLUTTER: Returned from Take Attendance. Result: $result');
 
-      // Refresh classes list if attendance was submitted
+      // Refresh classes list and stats if attendance was submitted
       if (result == true) {
         _loadCreatedClasses();
+        _loadDashboardStats();
       }
     } catch (e) {
       print('🔥 FLUTTER: Error navigating to Take Attendance: $e');
@@ -273,7 +328,9 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _loadCreatedClasses,
+        onRefresh: () async {
+          await Future.wait([_loadCreatedClasses(), _loadDashboardStats()]);
+        },
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
@@ -294,7 +351,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                             Expanded(
                               child: _buildStatCard(
                                 'Total Classes',
-                                '${_createdClasses.length}',
+                                '$_totalClasses',
                                 Icons.school,
                                 AppTheme.primaryColor,
                               ),
@@ -303,7 +360,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                             Expanded(
                               child: _buildStatCard(
                                 'Total Students',
-                                '${_createdClasses.fold<int>(0, (sum, c) => sum + c.totalStudents)}',
+                                '$_totalStudents',
                                 Icons.people,
                                 AppTheme.successColor,
                               ),
@@ -318,7 +375,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                             Expanded(
                               child: _buildStatCard(
                                 'Today\'s Sessions',
-                                '3',
+                                '$_todaysSessions',
                                 Icons.today,
                                 AppTheme.warningColor,
                               ),
@@ -327,7 +384,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                             Expanded(
                               child: _buildStatCard(
                                 'Avg. Attendance',
-                                '87%',
+                                '${_avgAttendance.toStringAsFixed(1)}%',
                                 Icons.trending_up,
                                 AppTheme.secondaryColor,
                               ),
