@@ -2,72 +2,79 @@
 
 Last updated: November 27, 2025
 
-Attendly (“the App”) is developed to provide attendance tracking, QR-based 
-check-ins, and basic class management. We respect your privacy and ensure that 
-your information is protected.
+Attendly ("the App") provides attendance tracking and class management features.
+The current version of the App operates in **Demo Mode** for testing and preview
+purposes. We respect your privacy and are committed to protecting user
+information.
 
 ## 1. Information We Collect
-Attendly may collect the following information:
 
-### • User-provided information
+### Demo Mode (Current Version)
+In this version of Attendly, **no real personal data is collected, stored, or
+transmitted**.  
+The App may display dummy data for demonstration, but this data is not linked to
+any actual individual.
+
+The App does **NOT**:
+- Collect names or emails
+- Collect real attendance data
+- Send any data to a server
+- Ask for or process actual login credentials
+
+### User-Provided Information (Future Versions)
+In future updates, when backend services are enabled, the App may collect:
 - Name
 - Email address
-- User type (teacher or student)
+- User role (Teacher/Student)
+- Attendance check-in logs
 
-### • Automatically collected information
-- Device information (Android version, model, etc.)
-- App usage data (non-personal)
+Any such changes will be updated in this policy before release.
 
-### • Attendance data
-- QR scan logs
-- Class/session information
-
-We **do NOT** collect:
-- Photos
-- Contacts
-- Messages
-- Location (unless your app actually uses it, remove if not)
-- Sensitive personal info
+### Automatically Collected Information
+During demo mode, the App may collect **non-personal technical information**
+such as:
+- Device model
+- Android version
+- Basic usage analytics  
+This is only used to improve performance and stability.
 
 ## 2. How We Use Information
-We use the collected information only for app functionality:
+In demo mode, all data displayed is **local and temporary**.
+No real data is processed.
 
+When full functionality is released, collected information will be used for:
 - Marking attendance
-- Displaying attendance history
-- Managing teacher/student accounts
-- Improving app performance
+- Showing attendance history
+- Managing user accounts
 
-We **do not** sell, share, or trade your data with any third party.
+We do **not** sell or share data with third parties.
 
 ## 3. Data Storage & Security
-- Data is stored securely and used only internally.
-- We use standard encryption and security practices.
-- We do not store unnecessary personal data.
+- In demo mode, no user data is stored on servers.
+- Future versions will use secure storage and encryption practices.
 
 ## 4. Third-Party Services
-Attendly does not use any third-party advertising SDKs.
-
-If you use Firebase (only write this if true), add:
-- Authentication
+The current version does **not** use:
+- Firebase Authentication
 - Firestore/Realtime Database
+- Advertising SDKs
 
-These services follow Google’s privacy & security standards.
+If these services are added in future versions, this policy will be updated.
 
-## 5. Children’s Privacy
-Attendly is **not intended for users under the age of 13**.  
-We do not knowingly collect personal information from children.
+## 5. Children's Privacy
+Attendly is not intended for children under 13.  
+No identifiable data is collected in demo mode.
 
 ## 6. User Rights
 You may contact us anytime to:
-
-- Request data deletion  
-- Request a copy of your data  
-- Ask questions about how your data is used  
+- Request deletion of any stored data (future versions)
+- Ask questions about how your data is handled
 
 ## 7. Changes to This Policy
-We may update this privacy policy occasionally. New changes will be posted on this page.
+We may update this policy periodically.  
+Revised policies will be posted on this page.
 
 ## 8. Contact Us
-If you have any questions about this Privacy Policy, contact:
+If you have questions about this Privacy Policy, contact:
 
-**Email:** codeforyash@gmail.com
+Email: codeforyash@gmail.com
