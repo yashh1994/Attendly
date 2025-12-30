@@ -21,6 +21,7 @@ with app.app_context():
         print('✅ Database tables created successfully')
 
 if __name__ == '__main__':
+    port = int(os.getenv('PORT', 3000))
     # Only show startup messages on main process (not reloader)
     if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
         print('🚀 Starting Attendly Backend Server...')
@@ -35,16 +36,16 @@ if __name__ == '__main__':
                 print(f'  {rule.methods} {rule.rule}')
         
         print('=' * 50)
-        print('🌐 Server starting on http://localhost:5000')
+        print(f'🌐 Server starting on http://localhost:{port}')
         print('🔄 Debug mode: ON (auto-reload enabled)')
         print('💡 Press Ctrl+C to stop the server')
     else:
         # This is the reloader process - server is actually ready now
         print('=' * 50)
         print('✅ Server is now ready and listening for requests!')
-        print('📍 API Base: http://localhost:5000/api')
-        print('🏥 Health: http://localhost:5000/health')
+        print(f'📍 API Base: http://localhost:{port}/api')
+        print(f'🏥 Health: http://localhost:{port}/health')
         print('=' * 50)
     
     # Run the app
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=True)

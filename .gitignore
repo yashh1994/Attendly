@@ -20,6 +20,10 @@ Backend/service-account-key.json
 
 Backend/**/__pycache__/
 
+ignore/
+ignore/*
+
+
 
 /.vscode/
 # Ensure all files inside .vscode are ignored

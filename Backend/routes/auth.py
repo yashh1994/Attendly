@@ -307,10 +307,17 @@ def verify_token():
 def logout():
     """Logout user (client-side should clear token)"""
     try:
-        current_user = get_current_user()
-        
-        if current_user:
-            print(f"🔥 LOGOUT: User {current_user.id} ({current_user.email}) logging out")
+        # Resolve current user from JWT identity (avoid relying on external helper)
+        user_id_str = get_jwt_identity()
+        user = None
+        try:
+            user_id = int(user_id_str)
+            user = User.query.get(user_id)
+        except Exception:
+            user = None
+
+        if user:
+            print(f"🔥 LOGOUT: User {user.id} ({user.email}) logging out")
         
         # Since we're using JWT tokens (stateless), the actual logout happens client-side
         # by clearing the token. This endpoint is just for logging purposes.

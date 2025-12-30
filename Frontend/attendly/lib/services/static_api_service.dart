@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import '../models/class.dart';
 import '../models/attendance.dart';
+import '../utils/config.dart';
 
 class StaticApiService {
-  static const String baseUrl = 'http://localhost:5000';
+  static String get baseUrl => AppConfig.backendBaseUrl;
   static final Dio _dio = Dio(
     BaseOptions(
       baseUrl: baseUrl,

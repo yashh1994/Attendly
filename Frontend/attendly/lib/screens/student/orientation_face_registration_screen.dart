@@ -97,7 +97,7 @@ class _OrientationFaceRegistrationScreenState
       print('🔥 FLUTTER: Testing server connectivity...');
       // Test a simple endpoint that doesn't require authentication
       final response = await http.get(
-        Uri.parse('http://localhost:5000/health'),
+        Uri.parse('${ApiService.baseUrl}/health'),
       );
       print(
         '🔥 FLUTTER: Health check response: ${response.statusCode} - ${response.body}',
@@ -906,69 +906,91 @@ class _OrientationFaceRegistrationScreenState
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.lightbulb_outline, color: Colors.amber.shade700),
-            const SizedBox(width: 8),
-            const Text('Enhanced Face Registration'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'This enhanced registration captures your face in multiple orientations for better recognition accuracy.',
-              style: TextStyle(fontSize: 15),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Instructions:',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            const Text('• Capture all 5 different orientations'),
-            const Text('• Follow the on-screen guidance for each pose'),
-            const Text('• Ensure good lighting and clear face visibility'),
-            const Text('• Hold still during each capture'),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
+      builder: (context) {
+        final mq = MediaQuery.of(context).size;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.lightbulb_outline, color: Colors.amber.shade700),
+              const SizedBox(width: 8),
+              const Text('Enhanced Face Registration'),
+            ],
+          ),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
+          content: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: mq.width * 0.95,
+                maxHeight: mq.height * 0.7,
               ),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: Colors.blue.shade700,
-                    size: 16,
+                  const Text(
+                    'This enhanced registration captures your face in multiple orientations for better recognition accuracy.',
+                    style: TextStyle(fontSize: 15),
                   ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Tap on orientation tiles below to select which pose to capture',
-                      style: TextStyle(fontSize: 12),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Instructions:',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('• Capture all 5 different orientations'),
+                  const Text('• Follow the on-screen guidance for each pose'),
+                  const Text(
+                    '• Ensure good lighting and clear face visibility',
+                  ),
+                  const Text('• Hold still during each capture'),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.blue.shade700,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Tap on orientation tiles below to select which pose to capture',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-            ),
-            child: const Text('Got it!', style: TextStyle(color: Colors.white)),
           ),
-        ],
-      ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+              ),
+              child: const Text(
+                'Got it!',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

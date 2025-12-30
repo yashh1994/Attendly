@@ -170,6 +170,7 @@ def check_dependencies():
     return True
 
 if __name__ == '__main__':
+    port = int(os.getenv('PORT', 3000))
     # Only show startup messages on main process (not reloader)
     if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
         print("🚀 Starting Attendly Backend Server...")
@@ -181,8 +182,8 @@ if __name__ == '__main__':
             sys.exit(1)
         
         print("🎉 Server is ready!")
-        print("📍 API Base URL: http://localhost:5000/api")
-        print("🏥 Health Check: http://localhost:5000/health")
+        print(f"📍 API Base URL: http://localhost:{port}/api")
+        print(f"🏥 Health Check: http://localhost:{port}/health")
         print("📚 Documentation: See README.md")
         print("🔄 Debug mode: ON (auto-reload enabled)")
         print("💡 Press Ctrl+C to stop the server")
@@ -190,4 +191,4 @@ if __name__ == '__main__':
     
     # Create and run app
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=port)

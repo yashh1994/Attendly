@@ -27,6 +27,16 @@ class _FaceRegistrationScreenState extends State<FaceRegistrationScreen> {
   int targetImages = 10; // Capture 10 images for good facial data
   bool isProcessing = false;
 
+  // Orientation selection state
+  int selectedOrientationIndex = 0;
+  final List<String> _orientations = [
+    'Center',
+    'Left', 
+    'Right',
+    'Up',
+    'Down',
+  ];
+
   final ApiService _apiService = ApiService();
 
   @override
@@ -63,7 +73,9 @@ class _FaceRegistrationScreenState extends State<FaceRegistrationScreen> {
     try {
       print('🔥 FLUTTER: Testing server connectivity...');
       // Test a simple endpoint that doesn't require authentication
-      final response = await http.get(Uri.parse('http://10.0.2.2:5000/health'));
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/health'),
+      );
       print(
         '🔥 FLUTTER: Health check response: ${response.statusCode} - ${response.body}',
       );
@@ -752,75 +764,190 @@ class _FaceRegistrationScreenState extends State<FaceRegistrationScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
-
-            // Camera preview
+            // Everything below scrolls as one unit
             Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isCapturing
-                        ? AppTheme.primaryColor
-                        : Colors.grey[300]!,
-                    width: 3,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(17),
-                  child: CameraPreview(controller!),
-                ),
-              ),
-            ),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
 
-            const SizedBox(height: 20),
-
-            // Capture button
-            Container(
-              margin: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  if (capturedImages.length < targetImages)
-                    ElevatedButton.icon(
-                      onPressed: isCapturing ? null : _captureImage,
-                      icon: Icon(
-                        isCapturing ? Icons.hourglass_empty : Icons.camera_alt,
-                        color: Colors.white,
-                      ),
-                      label: Text(
-                        isCapturing
-                            ? 'Capturing...'
-                            : capturedImages.isEmpty
-                            ? 'Start Capture'
-                            : 'Continue (${capturedImages.length}/$targetImages)',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                    // Camera preview
+                    Container(
+                      height: 300,
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isCapturing
+                              ? AppTheme.primaryColor
+                              : Colors.grey[300]!,
+                          width: 3,
                         ),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 8,
-                        shadowColor: AppTheme.primaryColor.withOpacity(0.3),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(17),
+                        child: CameraPreview(controller!),
                       ),
                     ),
 
-                  if (capturedImages.isNotEmpty)
-                    TextButton.icon(
-                      onPressed: _resetCapture,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Reset and Start Over'),
+                    const SizedBox(height: 20),
+
+                    // Captured images preview
+                    if (capturedImages.isNotEmpty) ...[
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Captured Images',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              height: 80,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: capturedImages.length,
+                                itemBuilder: (context, index) {
+                                  final dataUrl = capturedImages[index];
+                                  final bytes = base64Decode(dataUrl.split(',').last);
+                                  return Container(
+                                    margin: const EdgeInsets.only(right: 8),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.memory(
+                                        bytes,
+                                        width: 70,
+                                        height: 70,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
+                    // Orientation selector
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Select orientation to capture',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          GridView.count(
+                            crossAxisCount: 3,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            childAspectRatio: 3,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            children: List.generate(_orientations.length, (index) {
+                              final orientation = _orientations[index];
+                              final isSelected = selectedOrientationIndex == index;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedOrientationIndex = index;
+                                  });
+                                },
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppTheme.primaryColor
+                                        : Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppTheme.primaryColor
+                                          : Colors.grey[300]!,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    orientation,
+                                    style: TextStyle(
+                                      color: isSelected ? Colors.white : Colors.black,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
                     ),
-                ],
+
+                    const SizedBox(height: 20),
+
+                    // Capture button
+                    Container(
+                      margin: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          if (capturedImages.length < targetImages)
+                            ElevatedButton.icon(
+                              onPressed: isCapturing ? null : _captureImage,
+                              icon: Icon(
+                                isCapturing ? Icons.hourglass_empty : Icons.camera_alt,
+                                color: Colors.white,
+                              ),
+                              label: Text(
+                                isCapturing
+                                    ? 'Capturing...'
+                                    : capturedImages.isEmpty
+                                    ? 'Start Capture'
+                                    : 'Continue (${capturedImages.length}/$targetImages)',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryColor,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 8,
+                                shadowColor: AppTheme.primaryColor.withOpacity(0.3),
+                              ),
+                            ),
+
+                          if (capturedImages.isNotEmpty)
+                            TextButton.icon(
+                              onPressed: _resetCapture,
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Reset and Start Over'),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    // Bottom spacing
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
             ),
           ],

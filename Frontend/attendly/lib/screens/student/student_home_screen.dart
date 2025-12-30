@@ -188,10 +188,18 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
+                // Open registration and, when it returns, re-check face data status.
                 Navigator.pushNamed(
                   context,
                   Routes.orientationFaceRegistration,
-                );
+                ).then((_) async {
+                  await _checkFaceDataStatus();
+                  // If the user completed registration, immediately show the join dialog
+                  if (mounted && _hasFaceData) {
+                    // Delay to allow previous dialog to close fully
+                    Future.microtask(() => _showJoinClassDialog());
+                  }
+                });
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber.shade700,
@@ -212,10 +220,19 @@ class _StudentHomeScreenState extends State<StudentHomeScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Join Class'),
-        content: CustomTextField(
-          controller: _joinCodeController,
-          hint: 'Enter join code',
-          prefixIcon: Icons.vpn_key,
+        content: SizedBox(
+          // Constrain dialog height so it doesn't take full available height
+          height: 110,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextField(
+                controller: _joinCodeController,
+                hint: 'Enter join code',
+                prefixIcon: Icons.vpn_key,
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(

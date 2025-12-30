@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/class.dart';
 import '../models/attendance.dart';
+import '../utils/config.dart';
 
 class ApiService {
-  // Use localhost when using adb reverse, or 10.0.2.2 for Android emulator without reverse
-  static const String baseUrl = 'http://localhost:5000';
+  static String get baseUrl => AppConfig.backendBaseUrl;
 
   String? _token;
 

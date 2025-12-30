@@ -561,27 +561,44 @@ class _AccountScreenState extends State<AccountScreen> {
             onPressed: () async {
               Navigator.pop(context); // Close dialog
 
-              // Show loading
+              // Show loading on the root navigator and capture it so we can
+              // reliably pop it even if this widget is unmounted during logout.
+              final rootNav = Navigator.of(context, rootNavigator: true);
+
               showDialog(
                 context: context,
                 barrierDismissible: false,
+                useRootNavigator: true,
                 builder: (context) =>
                     const Center(child: CircularProgressIndicator()),
               );
 
+              print("Step 1 done");
               // Logout
               await authProvider.logout();
 
-              // Close loading dialog
-              if (context.mounted) Navigator.pop(context);
+              print("Step 2 done");
+              // Close loading dialog via root navigator (safe even if this
+              // widget was unmounted). Ignore errors.
+              try {
+                rootNav.pop();
+                print("Step 3 done");
+              } catch (e) {
+                print('🔥 FLUTTER: Failed to pop root loading dialog: $e');
+              }
 
-              // Navigate to login screen
-              if (context.mounted) {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  Routes.login,
-                  (route) => false,
-                );
+              // Navigate to login screen using root navigator
+              try {
+                rootNav.pushNamedAndRemoveUntil(Routes.login, (route) => false);
+              } catch (e) {
+                // Fallback to context navigation if rootNav push fails
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    Routes.login,
+                    (route) => false,
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(

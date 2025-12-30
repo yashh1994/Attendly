@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../providers/auth_provider.dart';
@@ -100,20 +101,22 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
 
       print('🔥 FLUTTER: Loading dashboard statistics from API...');
       final statsData = await _apiService.getTeacherDashboardStats();
-      
+
       print('🔥 FLUTTER: Raw stats data received: $statsData');
 
       if (statsData['statistics'] != null) {
         final stats = statsData['statistics'];
         print('🔥 FLUTTER: Statistics object: $stats');
-        
+
         final totalClasses = stats['total_classes'] ?? 0;
         final totalStudents = stats['total_students'] ?? 0;
         final todaysSessions = stats['todays_sessions'] ?? 0;
         final avgAttendance = (stats['avg_attendance_rate'] ?? 0.0).toDouble();
-        
-        print('🔥 FLUTTER: Parsed values - Classes: $totalClasses, Students: $totalStudents, Today: $todaysSessions, Avg: $avgAttendance');
-        
+
+        print(
+          '🔥 FLUTTER: Parsed values - Classes: $totalClasses, Students: $totalStudents, Today: $todaysSessions, Avg: $avgAttendance',
+        );
+
         setState(() {
           _totalClasses = totalClasses;
           _totalStudents = totalStudents;
@@ -121,7 +124,9 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
           _avgAttendance = avgAttendance;
         });
 
-        print('🔥 FLUTTER: State updated - Classes: $_totalClasses, Students: $_totalStudents, Today: $_todaysSessions, Avg: $_avgAttendance%');
+        print(
+          '🔥 FLUTTER: State updated - Classes: $_totalClasses, Students: $_totalStudents, Today: $_todaysSessions, Avg: $_avgAttendance%',
+        );
       } else {
         print('🔥 FLUTTER: ERROR - No statistics object in response');
       }
@@ -233,11 +238,35 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              classModel.joinCode,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryColor,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    classModel.joinCode,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => _copyJoinCode(classModel.joinCode),
+                    icon: const Icon(Icons.copy),
+                    tooltip: 'Copy Code',
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -253,9 +282,54 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
+          ElevatedButton.icon(
+            onPressed: () => _copyJoinCode(classModel.joinCode),
+            icon: const Icon(Icons.copy),
+            label: const Text('Copy Code'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _copyJoinCode(String joinCode) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: joinCode));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check, color: Colors.white),
+                const SizedBox(width: 8),
+                Text('Join code "$joinCode" copied to clipboard!'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to copy code: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   void _showCreateClassDialog() {

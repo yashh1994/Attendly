@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
@@ -29,6 +30,15 @@ void main() async {
   );
 
   // Initialize SharedPreferences
+  // Load environment variables early so AppConfig can read them
+  try {
+    await dotenv.load(fileName: '.env');
+    print('✅ .env loaded');
+  } catch (e) {
+    // Don't crash if .env is missing on device/emulator; use defaults
+    print('⚠️  Could not load .env: $e');
+  }
+
   final prefs = await SharedPreferences.getInstance();
 
   runApp(AttendlyApp(prefs: prefs));
